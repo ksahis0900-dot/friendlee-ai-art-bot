@@ -350,15 +350,21 @@ def run_final():
         concept = force_emoji(concept, emojis)
         # ----------------------
         
-    # ----------------------------------------------------
-    # 2. ШАГ: РИСУЕМ (1. SiliconFlow -> 2. Runware -> 3. Cloudflare -> 4. Pollinations)
-    # ----------------------------------------------    # --- 3. ШАГ: ГЕНЕРИРУЕМ КАРТИНКУ ---
+    # --- 3. ШАГ: СБОРКА ТЕКСТА (CAPTION) ---
+    if 'tags' not in locals():
+        tags = "#AIArt #DigitalArt #FrieNDLee"
+        
+    caption = f"✨ <b>{title}</b>\n\n{concept}\n\n{tags}\n\n{YOUR_SIGNATURE}"
+    if len(caption) > 1024:
+        caption = caption[:1010] + "..."
+
+    # --- 4. ШАГ: ГЕНЕРИРУЕМ КАРТИНКУ ---
     image_url = None
     image_data = None
     
     # ПЛАН A: SiliconFlow (Primary)
     if SILICONFLOW_KEY:
-        print(f"🎨 SiliconFlow (FLUX.1) начинает работу... (Баланс может быть 0)")
+        print(f"🎨 SiliconFlow (FLUX.1) начинает работу...")
         sf_url = "https://api.siliconflow.cn/v1/images/generations"
         headers = {"Authorization": f"Bearer {SILICONFLOW_KEY}", "Content-Type": "application/json"}
         payload = {
@@ -374,7 +380,7 @@ def run_final():
                 image_url = r.json()['images'][0]['url']
                 print("✅ SiliconFlow: URL получен.")
             else:
-                 print(f"⚠️ Ошибка SiliconFlow: {r.text}")
+                 print(f"⚠️ Ошибка SiliconFlow: {r.status_code}")
         except Exception as e:
             print(f"⚠️ Исключение SiliconFlow: {e}")
 
@@ -386,7 +392,7 @@ def run_final():
             {"action": "authentication", "api_key": RUNWARE_KEY},
             {
                 "action": "image_inference",
-                "modelId": "runware:100@1", # Flux.1 Schnell
+                "modelId": "runware:100@1",
                 "positivePrompt": t,
                 "width": 1024, "height": 1024, "numberResults": 1, "outputType": "URL"
             }
@@ -400,12 +406,10 @@ def run_final():
                         image_url = item['imageURL']
                         print("✅ Runware: URL получен.")
                         break
-            else:
-                 print(f"⚠️ Ошибка Runware: {r.text}")
         except Exception as e:
             print(f"⚠️ Исключение Runware: {e}")
 
-    # ПЛАН B.1: Hugging Face (Backup #2)
+    # ПЛАН B.1: Hugging Face
     if not image_url and HF_KEY:
         print("🤗 Hugging Face (Backup) начинает работу...")
         hf_url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
@@ -415,53 +419,33 @@ def run_final():
             if r.status_code == 200:
                 image_data = io.BytesIO(r.content)
                 print("✅ Hugging Face: Данные получены.")
-            else:
-                 print(f"⚠️ Ошибка Hugging Face: {r.text}")
         except Exception as e:
             print(f"⚠️ Исключение Hugging Face: {e}")
 
-    # ПЛАН B.2: Cloudflare (Backup #3)
-    if not image_url and not image_data and CLOUDFLARE_TOKEN and CLOUDFLARE_ID:
-        print("☁️ Cloudflare (Backup #3) начинает работу...")
-        cf_url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ID}/ai/run/@cf/black-forest-labs/flux-1-schnell"
-        headers = {"Authorization": f"Bearer {CLOUDFLARE_TOKEN}"}
-        try:
-            r = requests.post(cf_url, headers=headers, json={"prompt": t}, timeout=60)
-            if r.status_code == 200:
-                image_data = io.BytesIO(r.content)
-                print("✅ Cloudflare: Данные получены.")
-            else:
-                 print(f"⚠️ Ошибка Cloudflare: {r.text}")
-        except Exception as e:
-            print(f"⚠️ Исключение Cloudflare: {e}")
-
-    # --- 4. ШАГ: ОТПРАВКА В ТЕЛЕГРАМ ---
+    # ПЛАН C: Pollinations (Last Resort)
     if not image_url and not image_data:
-        # ПЛАН C: Pollinations (Download Mode) - ПОСЛЕДНЯЯ НАДЕЖДА
         print("🔄 ПЛАН C: Pollinations (Download Mode)...")
         poll_url = f"https://pollinations.ai/p/{urllib.parse.quote(t[:500])}?width=1024&height=1024&model=flux&nologo=true"
         try:
-            fake_headers = {"User-Agent": "Mozilla/5.0"}
-            img_resp = requests.get(poll_url, headers=fake_headers, timeout=60)
+            img_resp = requests.get(poll_url, timeout=60)
             if img_resp.status_code == 200:
                 image_data = io.BytesIO(img_resp.content)
                 print("✅ Pollinations: Фото скачано.")
-            else:
-                print(f"❌ Pollinations недоступен: {img_resp.status_code}")
         except Exception as e:
             print(f"⚠️ Ошибка Pollinations: {e}")
 
+    # --- 5. ШАГ: ОТПРАВКА ---
     if not image_url and not image_data:
-        print(f"❌ ВСЕ МЕТОДЫ ПРОВАЛИЛИСЬ. Тема: {t}")
-        raise Exception("God Mode: No images generated.")
+        raise Exception("Critical Failure: No image generated.")
 
-    # Отправка
     try:
         if image_url:
             bot.send_photo(CHANNEL_ID, image_url, caption=caption, parse_mode='HTML')
         else:
+            # На всякий случай сбрасываем указатель для BytesIO
+            if hasattr(image_data, 'seek'): image_data.seek(0)
             bot.send_photo(CHANNEL_ID, image_data, caption=caption, parse_mode='HTML')
-        print("🎉 ПОБЕДА! Пост в канале.")
+        print("🎉 ПОБЕДА! Пост отправлен!")
     except Exception as e:
         print(f"❌ ОШИБКА ОТПРАВКИ: {e}")
         raise
