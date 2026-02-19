@@ -359,19 +359,45 @@ def run_final():
         print("🔄 Pollinations Download...")
         try:
             r = requests.get(f"https://pollinations.ai/p/{urllib.parse.quote(t[:500])}?width=1024&height=1024&model=flux&nologo=true", timeout=60)
-            if r.status_code == 200: image_data = io.BytesIO(r.content)
-        except: pass
+            if r.status_code == 200: 
+                content = r.content
+                print(f"📊 Скачано байт: {len(content)}")
+                if len(content) > 1000: # Минимальный размер для картинки
+                    image_data = io.BytesIO(content)
+                else:
+                    print(f"⚠️ Слишком маленький файл, похоже на ошибку: {content[:100]}")
+        except Exception as e:
+            print(f"⚠️ Ошибка Pollinations: {e}")
 
     # --- 4. ШАГ: ОТПРАВКА ---
-    if not image_url and not image_data: raise Exception("Failure: No image.")
+    if not image_url and not image_data: raise Exception("Failure: No image generated.")
+    
+    # Валидация данных картинки (если это байты)
+    if image_data:
+        try:
+            image_data.seek(0)
+            img = Image.open(image_data)
+            img.verify()
+            image_data.seek(0)
+            print(f"✅ Картинка валидна: {img.format} {img.size}")
+        except Exception as e:
+            print(f"❌ Картинка коррумпирована или невалидна: {e}")
+            image_data = None
+            if not image_url: raise Exception("Failure: Invalid image data.")
+
     try:
-        if image_url: bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
+        if image_url: 
+            print(f"✈️ Отправка URL: {image_url[:50]}...")
+            bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
         else:
-            if hasattr(image_data, 'seek'): image_data.seek(0)
+            print(f"✈️ Отправка Bytes ({len(image_data.getvalue())} bytes)...")
             bot.send_photo(target, image_data, caption=caption, parse_mode='HTML')
         print("🎉 ПОБЕДА!")
     except Exception as e:
-        print(f"❌ ОШИБКА: {e}"); raise
+        print(f"❌ ОШИБКА ОТПРАВКИ: {e}")
+        if "process" in str(e).lower():
+            print("💡 Подсказка: Telegram не смог обработать файл. Проверьте формат и размер.")
+        raise
 
 if __name__ == "__main__":
     run_final()
