@@ -422,10 +422,26 @@ def run_final():
                 print(f"⚠️ Cloudflare Status {r.status_code}")
         except: pass
 
-    # Gemini Imagen (БЕСПЛАТНО с GOOGLE_KEY!)
+    # Gemini Image (БЕСПЛАТНО с GOOGLE_KEY!)
     if not image_url and not image_data and GOOGLE_KEY:
-        print("🌟 Gemini Imagen (последний шанс!)...")
+        print("🌟 Gemini Image (генерация картинки)...")
         image_data = generate_image_gemini(t)
+
+    # === АБСОЛЮТНЫЙ РЕЗЕРВ: Picsum (красивые фото, 100% бесплатно, без ключей) ===
+    if not image_url and not image_data:
+        print("🖼️ РЕЗЕРВ: Picsum Photos (бесплатное фото)...")
+        try:
+            # Берём случайное красивое фото с Picsum
+            seed = random.randint(1, 1000)
+            picsum_url = f"https://picsum.photos/seed/{seed}/1024/1024"
+            r = requests.get(picsum_url, timeout=30, allow_redirects=True)
+            if r.status_code == 200 and len(r.content) > 10000:
+                image_data = io.BytesIO(r.content)
+                print(f"✅ Picsum OK! ({len(r.content)} bytes)")
+            else:
+                print(f"⚠️ Picsum Status: {r.status_code}")
+        except Exception as e:
+            print(f"⚠️ Picsum Exception: {e}")
 
     # --- 4. ШАГ: ОТПРАВКА ---
     if not image_url and not image_data: raise Exception("CRITICAL: All Art Engines failed.")
@@ -439,7 +455,6 @@ def run_final():
             print(f"✅ Image Verified: {img.format}")
         except Exception as e:
             print(f"❌ Verification failed: {e}")
-            print(f"📄 Content Preview: {image_data.getvalue()[:300]}")
             image_data = None
             if not image_url: raise Exception("Incomplete Art Data.")
 
