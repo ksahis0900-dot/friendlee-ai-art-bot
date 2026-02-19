@@ -364,9 +364,9 @@ def run_final():
 
     # Hugging Face
     if not image_url and HF_KEY:
-        print("🤗 HF Check...")
+        print("🤗 HF Check (Router)...")
         try:
-            hf_url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
+            hf_url = "https://router.huggingface.co/black-forest-labs/FLUX.1-schnell"
             r = requests.post(hf_url, headers={"Authorization": f"Bearer {HF_KEY}"}, json={"inputs": t}, timeout=60)
             if r.status_code == 200: 
                 image_data = io.BytesIO(r.content)
@@ -396,7 +396,7 @@ def run_final():
             r = requests.get(poll_url, timeout=60)
             if r.status_code == 200: 
                 print(f"📊 Downloaded: {len(r.content)} bytes")
-                if len(r.content) > 2000:
+                if len(r.content) > 1000:
                     image_data = io.BytesIO(r.content)
                     print("✅ Pollinations OK!")
         except: pass
@@ -413,6 +413,7 @@ def run_final():
             print(f"✅ Image Verified: {img.format}")
         except Exception as e:
             print(f"❌ Verification failed: {e}")
+            print(f"📄 Content Preview: {image_data.getvalue()[:300]}")
             image_data = None
             if not image_url: raise Exception("Incomplete Art Data.")
 
