@@ -338,11 +338,10 @@ def run_final():
                 image_url = r.json()['images'][0]['url']
                 print("✅ SiliconFlow OK!")
             elif r.status_code == 401:
-                print("❌ SILICONFLOW_KEY НЕВЕРЕН (401)!")
+                print("❌ SILICONFLOW_KEY Invalid (401)")
             else:
-                print(f"⚠️ SiliconFlow Error {r.status_code}: {r.text[:300]}")
-        except Exception as e: 
-            print(f"⚠️ SiliconFlow Ex: {e}")
+                print(f"⚠️ SiliconFlow Status {r.status_code}")
+        except: pass
 
     # Runware
     if not image_url and RUNWARE_KEY:
@@ -359,45 +358,51 @@ def run_final():
                         image_url = d['imageURL']
                         print("✅ Runware OK!")
                         break
-            elif r.status_code == 401:
-                print("❌ RUNWARE_KEY НЕВЕРЕН (401)!")
             else:
-                print(f"⚠️ Runware Error {r.status_code}: {r.text[:300]}")
-        except Exception as e: 
-            print(f"⚠️ Runware Ex: {e}")
+                print(f"⚠️ Runware Status {r.status_code}")
+        except: pass
 
-    # Hugging Face (NEW ENDPOINT)
+    # Hugging Face
     if not image_url and HF_KEY:
-        print("🤗 Hugging Face (Router)...")
+        print("🤗 HF Check...")
         try:
-            hf_url = "https://router.huggingface.co/black-forest-labs/FLUX.1-schnell"
+            hf_url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
             r = requests.post(hf_url, headers={"Authorization": f"Bearer {HF_KEY}"}, json={"inputs": t}, timeout=60)
             if r.status_code == 200: 
                 image_data = io.BytesIO(r.content)
                 print("✅ HF OK!")
             else:
-                print(f"⚠️ HF Error {r.status_code}: {r.text[:300]}")
-        except Exception as e: 
-            print(f"⚠️ HF Ex: {e}")
+                print(f"⚠️ HF Status {r.status_code}")
+        except: pass
 
-    # Pollinations (Download - NEW SUBDOMAIN)
-    if not image_url and not image_data:
-        print("🔄 Pollinations Backup...")
+    # Cloudflare
+    if not image_url and not image_data and CLOUDFLARE_ID and CLOUDFLARE_TOKEN:
+        print("☁️ Cloudflare Check...")
         try:
-            poll_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(t[:500])}?width=1024&height=1024&model=flux&nologo=true"
-            r = requests.get(poll_url, headers=headers_common, timeout=60)
+            cf_url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ID}/ai/run/@cf/black-forest-labs/flux-1-schnell"
+            r = requests.post(cf_url, headers={"Authorization": f"Bearer {CLOUDFLARE_TOKEN}"}, json={"prompt": t}, timeout=60)
+            if r.status_code == 200:
+                image_data = io.BytesIO(r.content)
+                print("✅ Cloudflare OK!")
+            else:
+                print(f"⚠️ Cloudflare Status {r.status_code}")
+        except: pass
+
+    # Pollinations (Download)
+    if not image_url and not image_data:
+        print("🔄 Pollinations Final Backup...")
+        try:
+            poll_url = f"https://pollinations.ai/p/{urllib.parse.quote(t)}?width=1024&height=1024&nologo=true"
+            r = requests.get(poll_url, timeout=60)
             if r.status_code == 200: 
                 print(f"📊 Downloaded: {len(r.content)} bytes")
-                if len(r.content) > 10000:
+                if len(r.content) > 5000:
                     image_data = io.BytesIO(r.content)
                     print("✅ Pollinations OK!")
-                else:
-                    print(f"⚠️ Small file: {r.content[:100]}")
-        except Exception as e:
-            print(f"⚠️ Pollinations Ex: {e}")
+        except: pass
 
     # --- 4. ШАГ: ОТПРАВКА ---
-    if not image_url and not image_data: raise Exception("CRITICAL: All APIs failed.")
+    if not image_url and not image_data: raise Exception("CRITICAL: All Art Engines failed.")
     
     if image_data:
         try:
@@ -405,20 +410,21 @@ def run_final():
             img = Image.open(image_data)
             img.verify()
             image_data.seek(0)
-            print(f"✅ Image Valid: {img.format} {img.size}")
+            print(f"✅ Image Verified: {img.format}")
         except Exception as e:
-            print(f"❌ Corrupted Image: {e}")
+            print(f"❌ Verification failed: {e}")
             image_data = None
-            if not image_url: raise Exception("Invalid image data.")
+            if not image_url: raise Exception("Incomplete Art Data.")
 
     try:
-        if image_url: bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
+        if image_url: 
+            bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
         else:
             image_data.seek(0)
             bot.send_photo(target, image_data, caption=caption, parse_mode='HTML')
-        print("🎉 ПОБЕДА!")
+        print("🎉 SUCCESS! Art posted.")
     except Exception as e:
-        print(f"❌ SEND ERROR: {e}")
+        print(f"❌ SENDING FAILED: {e}")
         raise
 
 if __name__ == "__main__":
