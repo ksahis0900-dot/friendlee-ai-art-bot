@@ -1,0 +1,35 @@
+name: Auto Post AI News
+
+on:
+  schedule:
+    # АРТ: Утро (9:00), Обед (14:00), Вечер (19:00), Ночь (21:00) МСК (UTC: 6, 11, 16, 18)
+    - cron: '0 6,11,16,18 * * *'
+  workflow_dispatch: # Кнопка ручного запуска
+jobs:
+  post_art:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Art Bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
+          SILICONFLOW_KEY: ${{ secrets.SILICONFLOW_KEY }}
+          RUNWARE_KEY: ${{ secrets.RUNWARE_KEY }}
+          KIE_KEY: ${{ secrets.KIE_KEY }}
+          HF_KEY: ${{ secrets.HF_KEY }}
+          CLOUDFLARE_ID: ${{ secrets.CLOUDFLARE_ID }}
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+        run: python main.py --mode art

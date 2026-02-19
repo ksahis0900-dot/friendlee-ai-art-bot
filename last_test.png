@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamHub</title>
+    <meta property="og:title" content="StreamHub">
+    <meta property="og:description" content="Your personal streaming hub.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://127.0.0.1:8000/v1/files/image/a21b9080-f737-4f1d-bb9b-8ac2cdf5cb35.jpg">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #141414;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #222;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 6px;
+            border: 3px solid #222;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #777;
+        }
+
+        .main-container {
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-image: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e50914;
+            text-decoration: none;
+        }
+
+        #search-input {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 0.9em;
+            max-width: 150px;
+        }
+
+        .hero-section {
+            height: 60vh;
+            background-size: cover;
+            background-position: center top;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            position: relative;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, #141414 10%, transparent 50%);
+        }
+
+        .hero-content {
+            z-index: 5;
+            max-width: 90%;
+        }
+
+        .hero-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero-overview {
+            font-size: 1em;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        .play-button {
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+        .play-button:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .movie-carousel {
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 6;
+        }
+        
+        .carousel-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .movie-grid {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 15px;
+            scrollbar-width: none;
+        }
+        
+        .movie-grid::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .movie-card {
+            flex: 0 0 140px;
+            margin-right: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            text-decoration: none;
+            color: #fff;
+            transition: transform 0.3s ease, z-index 0.3s ease;
+            position: relative;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 210px;
+            object-fit: cover;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: rgba(100, 100, 100, 0.5);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #e50914;
+            width: 0%;
+        }
+        
+        #search-results {
+            padding: 80px 20px 20px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        
+        @media (min-width: 768px) {
+            header {
+                padding: 20px 50px;
+            }
+
+            .logo {
+                font-size: 1.8em;
+            }
+
+            #search-input {
+                max-width: 250px;
+            }
+
+            .hero-section {
+                height: 80vh;
+                align-items: center;
+                padding: 50px;
+            }
+
+            .hero-content {
+                max-width: 40%;
+            }
+
+            .hero-title {
+                font-size: 4em;
+                margin-bottom: 20px;
+            }
+
+            .hero-overview {
+                font-size: 1.2em;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .play-button {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+
+            .movie-carousel {
+                padding: 20px 50px;
+                margin-top: 20px;
+            }
+
+            #continue-watching-carousel {
+                margin-top: 0px;
+            }
+            
+            .carousel-title {
+                font-size: 1.5em;
+            }
+
+            .movie-card {
+                flex: 0 0 180px;
+                margin-right: 15px;
+            }
+            
+            .movie-card:hover {
+                transform: scale(1.1);
+            }
+
+            .movie-card img {
+                height: 270px;
+            }
+
+            #search-results {
+                padding: 100px 50px 20px;
+            }
+
+            .search-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        #no-results-message {
+           text-align: center;
+           padding: 50px;
+           color: #888;
+       }
+
+       #no-results-message h2 {
+           font-size: 2em;
+           margin-bottom: 15px;
+       }
+
+       #no-results-message a {
+           color: #e50914;
+           text-decoration: none;
+       }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <a href="/" class="logo">StreamHub</a>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search...">
+            </div>
+        </header>
+
+        <div id="homepage-content">
+            <div class="hero-section" style="margin-top: 0;">
+                <div class="hero-content">
+                    <h1 class="hero-title"></h1>
+                    <p class="hero-overview"></p>
+                    <a href="#" class="play-button">▶ Play</a>
+                </div>
+            </div>
+
+            <div id="continue-watching-carousel" class="movie-carousel hidden">
+                <h2 class="carousel-title">Continue Watching</h2>
+                <div class="movie-grid" id="continue-watching-grid"></div>
+            </div>
+
+            <div class="movie-carousel">
+                <h2 class="carousel-title">All Movies</h2>
+                <div class="movie-grid" id="movie-grid"></div>
+            </div>
+
+            <div class="movie-carousel" style="margin-top: -40px;">
+                <h2 class="carousel-title">TV Series</h2>
+                <div class="movie-grid" id="series-grid"></div>
+            </div>
+
+        </div>
+
+        <div id="search-results" class="hidden">
+            <div class="search-grid" id="search-grid">
+            </div>
+            <div id="no-results-message" class="hidden">
+               <h2>Nothing Found</h2>
+               <p>We couldn't find anything matching your search. You can request a movie or series by emailing us at <a href="mailto:contact@anondrop.net">contact@anondrop.net</a>.</p>
+           </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>All licenses have been purchased. For contact, please email <a href="mailto:contact@anondrop.net">contact@anondrop.net</a>.</p>
+        <p>Ads will be introduced soon to help cover licensing costs as viewership grows. We are currently ad-free to encourage initial views.</p>
+    </footer>
+
+    <style>
+        footer {
+            text-align: center;
+            padding: 20px 50px;
+            color: #888;
+            font-size: 0.9em;
+        }
+        footer a {
+            color: #aaa;
+            text-decoration: none;
+        }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('search-input');
+        const homepageContent = document.getElementById('homepage-content');
+        const searchResults = document.getElementById('search-results');
+        const searchGrid = document.getElementById('search-grid');
+        let allContent = [];
+
+        function getBrowserLocales() {
+            return navigator.languages || [navigator.language || navigator.userLanguage];
+        }
+
+        function getTranslation(item) {
+            const locales = getBrowserLocales();
+            for (const locale of locales) {
+                const lang = locale.split('-')[0];
+                if (item.translations[lang]) {
+                    return item.translations[lang];
+                }
+            }
+            return item.translations['en'] || Object.values(item.translations)[0];
+        }
+
+        function renderContent(movies, series) {
+            const movieGrid = document.getElementById('movie-grid');
+            const seriesGrid = document.getElementById('series-grid');
+            movieGrid.innerHTML = '';
+            seriesGrid.innerHTML = '';
+
+            movies.forEach(item => {
+                const movieCard = createMovieCard(item);
+                movieGrid.appendChild(movieCard);
+            });
+
+            series.forEach(item => {
+                const movieCard = createMovieCard(item);
+                seriesGrid.appendChild(movieCard);
+            });
+
+            if (movies.length > 0) {
+                const heroSection = document.querySelector('.hero-section');
+                const heroTitle = document.querySelector('.hero-title');
+                const heroOverview = document.querySelector('.hero-overview');
+                const playButton = document.querySelector('.play-button');
+                
+                const heroTranslation = getTranslation(movies[0]);
+                heroSection.style.backgroundImage = `url('${heroTranslation.poster_url}')`;
+                heroTitle.textContent = heroTranslation.title || heroTranslation.name;
+                heroOverview.textContent = heroTranslation.overview;
+                playButton.href = `/player/movie/${movies[0].tmdb_id}`;
+            }
+        }
+
+        function createMovieCard(item) {
+            const movieCard = document.createElement('a');
+            movieCard.href = item.url || `/player/${item.type}/${item.tmdb_id}`;
+            movieCard.className = 'movie-card';
+            
+            const translation = getTranslation(item);
+            const poster = document.createElement('img');
+            poster.src = translation.poster_url;
+            poster.alt = `${translation.title || translation.name} Poster`;
+            
+            movieCard.appendChild(poster);
+            return movieCard;
+        }
+
+        fetch('/api/content')
+            .then(response => response.json())
+            .then(content => {
+                allContent = [...content.movies, ...content.series];
+                renderContent(content.movies, content.series);
+                buildContinueWatching();
+            });
+
+        searchInput.addEventListener('keyup', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm) {
+                homepageContent.classList.add('hidden');
+                searchResults.classList.remove('hidden');
+
+                searchGrid.innerHTML = '';
+                const noResultsMessage = document.getElementById('no-results-message');
+                const filteredContent = allContent.filter(item => {
+                    const translation = getTranslation(item);
+                    const title = (translation.title || translation.name || '').toLowerCase();
+                    const overview = (translation.overview || '').toLowerCase();
+                    return title.includes(searchTerm) || overview.includes(searchTerm);
+                });
+                
+                if (filteredContent.length === 0) {
+                    noResultsMessage.classList.remove('hidden');
+                } else {
+                    noResultsMessage.classList.add('hidden');
+                    filteredContent.forEach(item => {
+                        const movieCard = createMovieCard(item);
+                        searchGrid.appendChild(movieCard);
+                    });
+                }
+            } else {
+                homepageContent.classList.remove('hidden');
+                searchResults.classList.add('hidden');
+                searchGrid.innerHTML = '';
+            }
+        });
+
+        function buildContinueWatching() {
+            const continueWatchingCarousel = document.getElementById('continue-watching-carousel');
+            const continueWatchingGrid = document.getElementById('continue-watching-grid');
+            continueWatchingGrid.innerHTML = '';
+            let continueWatchingContent = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('progress_')) {
+                    const progress = JSON.parse(localStorage.getItem(key));
+                    if (progress && (progress.currentTime > 0 && progress.duration > 0) || (progress.type === 'series' && progress.season && progress.episode)) {
+                        const keyParts = key.split('_');
+                        const tmdbId = keyParts[1];
+                        const contentItem = allContent.find(c => c.tmdb_id === tmdbId);
+
+                        if (contentItem) {
+                            const continueItem = { ...contentItem, progress };
+                            if (contentItem.type === 'series') {
+                                continueItem.url = `/player/series/${tmdbId}/${progress.season}/${progress.episode}`;
+                                continueItem.uniqueId = `${tmdbId}-${progress.season}-${progress.episode}`;
+                            } else {
+                                continueItem.url = `/player/movie/${tmdbId}`;
+                                continueItem.uniqueId = tmdbId;
+                            }
+                            continueWatchingContent.push(continueItem);
+                        }
+                    }
+                }
+            }
+
+            if (continueWatchingContent.length > 0) {
+                const latestContentMap = new Map();
+                continueWatchingContent.forEach(item => {
+                    if (!item.progress || !item.progress.lastWatched) {
+                        return;
+                    }
+
+                    const key = item.type === 'series' ? item.tmdb_id : `movie-${item.tmdb_id}`;
+                    const existing = latestContentMap.get(key);
+
+                    if (!existing || new Date(item.progress.lastWatched) > new Date(existing.progress.lastWatched)) {
+                        latestContentMap.set(key, item);
+                    }
+                });
+                continueWatchingContent = Array.from(latestContentMap.values());
+
+                continueWatchingCarousel.classList.remove('hidden');
+
+                continueWatchingContent.sort((a, b) => {
+                    if (!a.progress || !a.progress.lastWatched || !b.progress || !b.progress.lastWatched) {
+                        return 0;
+                    }
+                    return new Date(b.progress.lastWatched) - new Date(a.progress.lastWatched);
+                });
+
+                continueWatchingContent.forEach(item => {
+                    const movieCard = createMovieCard(item);
+                    movieCard.href = item.url;
+                    
+                    const progressBar = document.createElement('div');
+                    progressBar.className = 'progress-bar';
+                    
+                    const progressBarFill = document.createElement('div');
+                    progressBarFill.className = 'progress-bar-fill';
+                    const percentage = (item.progress.currentTime / item.progress.duration) * 100;
+                    progressBarFill.style.width = `${Math.min(100, percentage)}%`;
+                    
+                    progressBar.appendChild(progressBarFill);
+                    movieCard.appendChild(progressBar);
+                    continueWatchingGrid.appendChild(movieCard);
+                });
+            }
+        }
+    });
+    </script>
+</body>
+</html>
+</html>
