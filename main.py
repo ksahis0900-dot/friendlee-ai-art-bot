@@ -273,182 +273,105 @@ def run_final():
         t = f"{st1} and {st2} style of {s} {c}, with {l}, masterpiece, 8k, detailed"
         print(f"🎲 Сгенерирована тема (God Mode V3.0): {t}")
     
-    
-    # 1. Текст от Kie.ai (PRIORITY - DeepSeek лучше пишет по-русски)
+        # --- 2. ШАГ: ГЕНЕРИРУЕМ ТЕКСТ (ЗАГОЛОВОК, КОНЦЕПТ, ТЕГИ) ---
     raw = generate_text_kie(t)
-    
-    # 2. Если Kie сломался -> Gemini
     if not raw:
         print("⚠️ Kie.ai молчит. Пробую Gemini...")
-        gemini_prompt = (
-            f"Напиши ОЧЕНЬ КОРОТКИЙ пост про '{t}'.\n"
-            f"Язык: Русский. Эмоций: МНОГО (используй ✨🔥).\n"
-            f"Концепт: мах 15 слов.\n"
-            f"JSON: {{\"TITLE\": \"...\", \"CONCEPT\": \"...\", \"TAGS\": \"...\"}}"
-        )
-        raw = generate_text(gemini_prompt)
-
-    # 3. Если и Gemini сломался -> Pollinations
+        raw = generate_text(f"Post JSON about {t} in Russian. {{\'TITLE\':\'...\', \'CONCEPT\':\'...\', \'TAGS\':\'...\'}}")
     if not raw:
         print("⚠️ Gemini молчит. Пробую Pollinations AI...")
         raw = generate_text_pollinations(t)
 
-    # 3. ЕСЛИ ВСЕ СЛОМАЛОСЬ -> РАСШИРЕННЫЙ АВТОНОМНЫЙ РЕЖИМ
-    if not raw:
-        print("⚠️ Все AI-писатели недоступны. Включаю 'Генератор Шаблонов v3.0'...")
-        title_emoji = random.choice(["✨", "🔥", "🔮", "🎨", "🚀", "👁️", "🌊", "💎", "🌌"])
-        title = f"{title_emoji} {t.upper()} {title_emoji}"
-        
-        # Генератор более сложных промптов на английском
-        adjectives = ["cinematic lighting", "hyper-realistic", "ethereal", "dreamlike", "volumetric lighting", "octane render", "intricate details", "4k", "8k", "studio quality", "sharp focus", "bokeh", "vivid colors", "dynamic composition"]
-        art_styles = ["cyberpunk style", "oil painting", "watercolor style", "digital art", "concept art", "fantasy art", "sci-fi", "anime style", "photorealism"]
-        selected_adjectives = ", ".join(random.sample(adjectives, 5))
-        selected_style = random.choice(art_styles)
-        prompt = f"masterpiece, best quality, {t}, {selected_style}, {selected_adjectives}, highly detailed, trending on artstation"
-        
-        # ... (concepts_bank logic remains)
-        concepts_bank = [
-             f"Искусство — это {t}. Всё остальное — просто шум.",
-             "Творческий хаос, который обрел форму.",
-             "Эстетический восторг в каждом пикселе.",
-             "Нейросеть снова превзошла саму себя.",
-             "Идеальный баланс света и тени."
-        ]
-        descriptions_bank = ["<i>Каждая деталь здесь рассказывает свою историю.</i>", "<i>Свет падает так реалистично, что хочется протянуть руку.</i>"]
-        
-        concept = random.choice(concepts_bank)
-        description = random.choice(descriptions_bank)
-
-    else:
-        # Парсинг (Gemini или Pollinations)
+    # ПАРСИНГ И FALLBACK
+    title, concept, tags = None, None, None
+    if raw:
         import json
-        val = {}
-        # Очистка markdown (```json ... ```)
-        clean_raw = raw.replace('```json', '').replace('```', '').strip()
-        
-        # Попытка найти первую { и последнюю } для извлечения JSON
-        start_idx = clean_raw.find('{')
-        end_idx = clean_raw.rfind('}')
-        if start_idx != -1 and end_idx != -1:
-            clean_raw = clean_raw[start_idx:end_idx+1]
-        
         try:
-            val = json.loads(clean_raw)
-        except:
-             # Fallback parsing
-             pass
-        
-        title = val.get('TITLE', f"✨ {t.upper()} ✨")
-        concept = val.get('CONCEPT', 'Уникальный взгляд на цифровое искусство.')
-        tags = val.get('TAGS', '#AIArt #DigitalArt #Masterpiece')
-        # Промпт генерируем для внутреннего пользования, но не показываем
-        prompt = f"masterpiece, best quality, {t}, 8k, detailed"
-        
-        # --- EMOJI ENFORCER ---
-        emojis = ["✨", "🔥", "🔮", "🎨", "🚀", "👁️", "🌊", "💎", "🌌", "🦾", "👾", "🐉", "🧬"]
-        title = force_emoji(title, emojis)
-        concept = force_emoji(concept, emojis)
-        # ----------------------
-        
-    # --- 3. ШАГ: СБОРКА ТЕКСТА (CAPTION) ---
-    if 'tags' not in locals():
-        tags = "#AIArt #DigitalArt #FrieNDLee"
-        
-    caption = f"✨ <b>{title}</b>\n\n{concept}\n\n{tags}\n\n{YOUR_SIGNATURE}"
-    if len(caption) > 1024:
-        caption = caption[:1010] + "..."
+            # Очистка и поиск JSON
+            match = raw.replace('```json', '').replace('```', '').strip()
+            start = match.find('{')
+            end = match.rfind('}')
+            if start != -1 and end != -1:
+                data = json.loads(match[start:end+1])
+                title = data.get('TITLE')
+                concept = data.get('CONCEPT')
+                tags = data.get('TAGS')
+        except: pass
 
-    # --- 4. ШАГ: ГЕНЕРИРУЕМ КАРТИНКУ ---
-    image_url = None
-    image_data = None
+    # Авто-генератор шаблона (если AI подвел или парсинг не удался)
+    if not title or not concept:
+        print("🛠️ Использую аварийный шаблон поста...")
+        title = f"🎨 {t[:30]}..."
+        concept = "Погружение в мир цифровых грез и нейронных сетей."
+        tags = "#AIArt #DigitalDreams #ArtBot"
+
+    # Эмодзи-энфорсер
+    emojis = ["✨", "🔥", "🔮", "🎨", "🚀", "👁️", "🌊", "💎", "🌌", "🦾", "👾", "🐉", "🧬"]
+    title = force_emoji(title, emojis)
+    concept = force_emoji(concept, emojis)
+
+    # Сборка капшена с экранированием HTML
+    def esc(s): return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    caption = f"✨ <b>{esc(title)}</b>\n\n{esc(concept)}\n\n{esc(tags)}\n\n{YOUR_SIGNATURE}"
+    if len(caption) > 1024: caption = caption[:1010] + "..."
+
+    # Проверка канала
+    target = str(CHANNEL_ID)
+    if not target.startswith('@') and not target.startswith('-'):
+        if not target.isdigit(): target = f"@{target}"
+
+    # --- 3. ШАГ: РИСУЕМ ---
+    image_url, image_data = None, None
     
-    # ПЛАН A: SiliconFlow (Primary)
+    # SiliconFlow
     if SILICONFLOW_KEY:
-        print(f"🎨 SiliconFlow (FLUX.1) начинает работу...")
-        sf_url = "https://api.siliconflow.cn/v1/images/generations"
-        headers = {"Authorization": f"Bearer {SILICONFLOW_KEY}", "Content-Type": "application/json"}
-        payload = {
-            "model": "black-forest-labs/FLUX.1-schnell",
-            "prompt": t,
-            "negative_prompt": "nsfw, low quality, blurry, distorted, watermarks",
-            "image_size": "1024x1024",
-            "batch_size": 1
-        }
+        print("🎨 SiliconFlow...")
         try:
-            r = requests.post(sf_url, json=payload, headers=headers, timeout=45)
-            if r.status_code == 200:
-                image_url = r.json()['images'][0]['url']
-                print("✅ SiliconFlow: URL получен.")
-            else:
-                 print(f"⚠️ Ошибка SiliconFlow: {r.status_code}")
-        except Exception as e:
-            print(f"⚠️ Исключение SiliconFlow: {e}")
+            r = requests.post("https://api.siliconflow.cn/v1/images/generations", 
+                             json={"model": "black-forest-labs/FLUX.1-schnell", "prompt": t, "image_size": "1024x1024"},
+                             headers={"Authorization": f"Bearer {SILICONFLOW_KEY}"}, timeout=40)
+            if r.status_code == 200: image_url = r.json()['images'][0]['url']
+        except: pass
 
-    # ПЛАН B: Runware (Secondary)
+    # Runware
     if not image_url and RUNWARE_KEY:
-        print("⚡ Runware (Backup) начинает работу...")
-        rw_url = "https://api.runware.ai/v1"
-        rw_payload = [
-            {"action": "authentication", "api_key": RUNWARE_KEY},
-            {
-                "action": "image_inference",
-                "modelId": "runware:100@1",
-                "positivePrompt": t,
-                "width": 1024, "height": 1024, "numberResults": 1, "outputType": "URL"
-            }
-        ]
+        print("⚡ Runware...")
         try:
-            r = requests.post(rw_url, json=rw_payload, timeout=45)
+            r = requests.post("https://api.runware.ai/v1", 
+                             json=[{"action": "authentication", "api_key": RUNWARE_KEY},
+                                   {"action": "image_inference", "modelId": "runware:100@1", "positivePrompt": t, "outputType": "URL"}], timeout=40)
             if r.status_code == 200:
-                res = r.json().get('data', [])
-                for item in res:
-                    if 'imageURL' in item:
-                        image_url = item['imageURL']
-                        print("✅ Runware: URL получен.")
-                        break
-        except Exception as e:
-            print(f"⚠️ Исключение Runware: {e}")
+                for d in r.json().get('data',[]):
+                    if d.get('imageURL'): image_url = d['imageURL']; break
+        except: pass
 
-    # ПЛАН B.1: Hugging Face
+    # Hugging Face
     if not image_url and HF_KEY:
-        print("🤗 Hugging Face (Backup) начинает работу...")
-        hf_url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
-        headers = {"Authorization": f"Bearer {HF_KEY}"}
+        print("🤗 HF...")
         try:
-            r = requests.post(hf_url, headers=headers, json={"inputs": t}, timeout=60)
-            if r.status_code == 200:
-                image_data = io.BytesIO(r.content)
-                print("✅ Hugging Face: Данные получены.")
-        except Exception as e:
-            print(f"⚠️ Исключение Hugging Face: {e}")
+            r = requests.post("https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell", 
+                             headers={"Authorization": f"Bearer {HF_KEY}"}, json={"inputs": t}, timeout=60)
+            if r.status_code == 200: image_data = io.BytesIO(r.content)
+        except: pass
 
-    # ПЛАН C: Pollinations (Last Resort)
+    # Pollinations (Download)
     if not image_url and not image_data:
-        print("🔄 ПЛАН C: Pollinations (Download Mode)...")
-        poll_url = f"https://pollinations.ai/p/{urllib.parse.quote(t[:500])}?width=1024&height=1024&model=flux&nologo=true"
+        print("🔄 Pollinations Download...")
         try:
-            img_resp = requests.get(poll_url, timeout=60)
-            if img_resp.status_code == 200:
-                image_data = io.BytesIO(img_resp.content)
-                print("✅ Pollinations: Фото скачано.")
-        except Exception as e:
-            print(f"⚠️ Ошибка Pollinations: {e}")
+            r = requests.get(f"https://pollinations.ai/p/{urllib.parse.quote(t[:500])}?width=1024&height=1024&model=flux&nologo=true", timeout=60)
+            if r.status_code == 200: image_data = io.BytesIO(r.content)
+        except: pass
 
-    # --- 5. ШАГ: ОТПРАВКА ---
-    if not image_url and not image_data:
-        raise Exception("Critical Failure: No image generated.")
-
+    # --- 4. ШАГ: ОТПРАВКА ---
+    if not image_url and not image_data: raise Exception("Failure: No image.")
     try:
-        if image_url:
-            bot.send_photo(CHANNEL_ID, image_url, caption=caption, parse_mode='HTML')
+        if image_url: bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
         else:
-            # На всякий случай сбрасываем указатель для BytesIO
             if hasattr(image_data, 'seek'): image_data.seek(0)
-            bot.send_photo(CHANNEL_ID, image_data, caption=caption, parse_mode='HTML')
-        print("🎉 ПОБЕДА! Пост отправлен!")
+            bot.send_photo(target, image_data, caption=caption, parse_mode='HTML')
+        print("🎉 ПОБЕДА!")
     except Exception as e:
-        print(f"❌ ОШИБКА ОТПРАВКИ: {e}")
-        raise
+        print(f"❌ ОШИБКА: {e}"); raise
 
 if __name__ == "__main__":
     run_final()
