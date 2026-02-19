@@ -1,3 +1,4 @@
+print("🚀 BOOTING FRIE-ND-LEE ART BOT...")
 # God Mode V3.0 Activated (Trigger: 2026-02-19 21:05)
 import telebot
 import os
