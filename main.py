@@ -478,7 +478,8 @@ def run_final():
         
     # Если даже скачать не вышло - ПЛАН D (Сдача)
     # Мы больше не шлем ссылки текстом, чтобы не мусорить в канале.
-    print("❌ Все методы загрузки фото провалились. Пост отменен.")
+    print(f"❌ Все методы загрузки фото провалились. Тема: {t if 't' in locals() else 'Unknown'}")
+    raise Exception("Critical Failure: Bot failed to post art after all attempts.")
 
 if __name__ == "__main__":
     run_final()
