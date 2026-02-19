@@ -23,8 +23,11 @@ YOUR_SIGNATURE = os.environ.get('YOUR_SIGNATURE', "@fRieNDLee34")
 
 bot = telebot.TeleBot(TOKEN) if TOKEN else None
 
-print(f"🛠️ DEBUG: TOKEN exists: {bool(TOKEN)}")
-print(f"🛠️ DEBUG: CHANNEL_ID: {CHANNEL_ID}")
+import sys
+print(f"🛠️ DEBUG: sys.version: {sys.version}")
+print(f"🛠️ DEBUG: sys.argv: {sys.argv}")
+print(f"🛠️ DEBUG: TOKEN prefix: {TOKEN[:5] if TOKEN else 'None'}...")
+print(f"🛠️ DEBUG: CHANNEL_ID: '{CHANNEL_ID}' (Type: {type(CHANNEL_ID)})")
 
 if bot and TOKEN:
     try:

@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: List files
+        run: ls -la
+
       - name: Run Art Bot
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -35,4 +38,4 @@ jobs:
           HF_KEY: ${{ secrets.HF_KEY }}
           CLOUDFLARE_ID: ${{ secrets.CLOUDFLARE_ID }}
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
-        run: python main.py
+        run: python3 main.py
