@@ -142,31 +142,36 @@ def get_ai_news():
         print(f"RSS Error: {e}")
     return None
 
-# --- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ ЧЕРЕЗ GEMINI (IMAGEN) ---
+# --- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ ЧЕРЕЗ GEMINI ---
 def generate_image_gemini(prompt):
-    """Генерирует картинку через Google Imagen API (бесплатно с GOOGLE_KEY)"""
+    """Генерирует картинку через Gemini 2.5 Flash Image (бесплатно с GOOGLE_KEY)"""
     if not GOOGLE_KEY:
         return None
-    print("🎨 Gemini Imagen генерирует картинку...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key={GOOGLE_KEY}"
+    print("🎨 Gemini Image генерирует картинку...")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key={GOOGLE_KEY}"
     payload = {
-        "instances": [{"prompt": prompt}],
-        "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
+        "contents": [{"parts": [{"text": f"Generate a beautiful, high-quality digital art image: {prompt}"}]}],
+        "generationConfig": {"responseModalities": ["IMAGE"]}
     }
     try:
-        r = requests.post(url, json=payload, timeout=60)
+        r = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=90)
+        print(f"📊 Gemini Image Status: {r.status_code}")
         if r.status_code == 200:
             data = r.json()
-            predictions = data.get('predictions', [])
-            if predictions:
-                b64_image = predictions[0].get('bytesBase64Encoded')
-                if b64_image:
-                    image_bytes = base64.b64decode(b64_image)
-                    print(f"✅ Gemini Imagen OK! ({len(image_bytes)} bytes)")
-                    return io.BytesIO(image_bytes)
-        print(f"⚠️ Gemini Imagen Status {r.status_code}: {r.text[:200]}")
+            candidates = data.get('candidates', [])
+            if candidates:
+                parts = candidates[0].get('content', {}).get('parts', [])
+                for part in parts:
+                    inline_data = part.get('inlineData')
+                    if inline_data and inline_data.get('data'):
+                        image_bytes = base64.b64decode(inline_data['data'])
+                        print(f"✅ Gemini Image OK! ({len(image_bytes)} bytes)")
+                        return io.BytesIO(image_bytes)
+            print(f"⚠️ Gemini Image: нет картинки в ответе. Response: {r.text[:300]}")
+        else:
+            print(f"⚠️ Gemini Image Error: {r.text[:300]}")
     except Exception as e:
-        print(f"⚠️ Gemini Imagen Exception: {e}")
+        print(f"⚠️ Gemini Image Exception: {e}")
     return None
 
 import sys
