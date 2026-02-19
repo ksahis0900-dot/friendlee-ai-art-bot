@@ -23,6 +23,16 @@ YOUR_SIGNATURE = os.environ.get('YOUR_SIGNATURE', "@fRieNDLee34")
 
 bot = telebot.TeleBot(TOKEN) if TOKEN else None
 
+print(f"🛠️ DEBUG: TOKEN exists: {bool(TOKEN)}")
+print(f"🛠️ DEBUG: CHANNEL_ID: {CHANNEL_ID}")
+
+if bot and TOKEN:
+    try:
+        me = bot.get_me()
+        print(f"🤖 Бот авторизован: @{me.username}")
+    except Exception as e:
+        print(f"❌ ОШИБКА АВТОРИЗАЦИИ: {e}")
+
 def generate_text(theme):
     if not GOOGLE_KEY:
         return None
