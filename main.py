@@ -1,11 +1,13 @@
 print("🚀 BOOTING FRIE-ND-LEE ART BOT...")
-# God Mode V3.0 Activated (Trigger: 2026-02-19 21:05)
+# God Mode V3.0 Activated (Trigger: 2026-02-19 22:35)
 import telebot
 import os
 import requests
 import random
 import io
 import urllib.parse
+import base64
+import json
 from PIL import Image
 
 # НОВЫЙ КЛЮЧ
@@ -138,6 +140,33 @@ def get_ai_news():
                 return f"News: {entry.title}"
     except Exception as e:
         print(f"RSS Error: {e}")
+    return None
+
+# --- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ ЧЕРЕЗ GEMINI (IMAGEN) ---
+def generate_image_gemini(prompt):
+    """Генерирует картинку через Google Imagen API (бесплатно с GOOGLE_KEY)"""
+    if not GOOGLE_KEY:
+        return None
+    print("🎨 Gemini Imagen генерирует картинку...")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key={GOOGLE_KEY}"
+    payload = {
+        "instances": [{"prompt": prompt}],
+        "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
+    }
+    try:
+        r = requests.post(url, json=payload, timeout=60)
+        if r.status_code == 200:
+            data = r.json()
+            predictions = data.get('predictions', [])
+            if predictions:
+                b64_image = predictions[0].get('bytesBase64Encoded')
+                if b64_image:
+                    image_bytes = base64.b64decode(b64_image)
+                    print(f"✅ Gemini Imagen OK! ({len(image_bytes)} bytes)")
+                    return io.BytesIO(image_bytes)
+        print(f"⚠️ Gemini Imagen Status {r.status_code}: {r.text[:200]}")
+    except Exception as e:
+        print(f"⚠️ Gemini Imagen Exception: {e}")
     return None
 
 import sys
@@ -388,21 +417,10 @@ def run_final():
                 print(f"⚠️ Cloudflare Status {r.status_code}")
         except: pass
 
-    # Pollinations (Download) — NEW API: gen.pollinations.ai
-    if not image_url and not image_data:
-        print("🔄 Pollinations Final Backup...")
-        try:
-            poll_url = f"https://gen.pollinations.ai/image/{urllib.parse.quote(t)}?width=1024&height=1024&nologo=true&model=flux"
-            print(f"📡 URL: {poll_url[:120]}...")
-            r = requests.get(poll_url, timeout=90, headers={"User-Agent": "Mozilla/5.0"})
-            print(f"📊 Status: {r.status_code}, Downloaded: {len(r.content)} bytes")
-            if r.status_code == 200 and len(r.content) > 5000:
-                image_data = io.BytesIO(r.content)
-                print("✅ Pollinations OK!")
-            else:
-                print(f"⚠️ Pollinations: маленький файл или ошибка. Первые 200 байт: {r.content[:200]}")
-        except Exception as e:
-            print(f"⚠️ Pollinations Exception: {e}")
+    # Gemini Imagen (БЕСПЛАТНО с GOOGLE_KEY!)
+    if not image_url and not image_data and GOOGLE_KEY:
+        print("🌟 Gemini Imagen (последний шанс!)...")
+        image_data = generate_image_gemini(t)
 
     # --- 4. ШАГ: ОТПРАВКА ---
     if not image_url and not image_data: raise Exception("CRITICAL: All Art Engines failed.")
