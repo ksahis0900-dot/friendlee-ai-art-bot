@@ -150,18 +150,14 @@ def run_final():
     # ... (rest of code)
 
 
-    # 1. ШАГ: РЕШАЕМ ОТКУДА БРАТЬ ИДЕЮ
+    # --- 1. ШАГ: РЕШАЕМ ОТКУДА БРАТЬ ИДЕЮ ---
     source = "INTERNAL"
-    reddit_theme = None
+    t = None
     
-    # Логика выбора источника (с учетом флага)
-    use_reddit = (random.random() < 0.5)
-    if FORCE_SOURCE == "REDDIT": use_reddit = True
-    elif FORCE_SOURCE == "INTERNAL": use_reddit = False
-    
-    if use_reddit:
+    # 50% шанс Reddit
+    if random.random() < 0.5:
         print("🌍 Ищу вдохновение на Reddit...")
-        subreddits = ["Art", "DigitalArt", "Cyberpunk", "ImaginaryLandscapes", "Midjourney", "StableDiffusion", "ConceptArt"]
+        subreddits = ["Art", "DigitalArt", "Cyberpunk", "ImaginaryLandscapes", "Midjourney", "StableDiffusion-Concepts"]
         bsub = random.choice(subreddits)
         try:
             r_url = f"https://www.reddit.com/r/{bsub}/top.json?limit=15&t=day"
@@ -170,25 +166,23 @@ def run_final():
                 posts = resp.json()['data']['children']
                 valid_posts = [p['data']['title'] for p in posts if not p['data']['stickied']]
                 if valid_posts:
-                    reddit_theme = random.choice(valid_posts)
-                    t = f"Art inspired by: {reddit_theme}"
+                    theme_core = random.choice(valid_posts)
+                    t = f"Art inspired by: {theme_core}"
                     source = f"REDDIT (r/{bsub})"
-                    print(f"🔥 НАЙДЕН ТРЕНД: {reddit_theme}")
+                    print(f"🔥 НАЙДЕН ТРЕНД: {theme_core}")
         except Exception as e:
-            print(f"⚠️ Ошибка Reddit: {e}. Перехожу на внутренний генератор.")
+            print(f"⚠️ Ошибка Reddit: {e}")
 
-    if not reddit_theme:
-        # 30% шанс взять реальную новость про ИИ, если нет Reddit
-        if random.random() < 0.3:
-            news_theme = get_ai_news()
-            if news_theme:
-                t = f"Artistic interpretation of: {news_theme}"
-                print(f"📰 ТЕМА ИЗ НОВОСТЕЙ: {news_theme}")
-            else:
-                 # Фолбек на генератор
-                 pass 
-        
-        # ВНУТРЕННИЙ ГЕНЕРАТОР (GOD MODE V3.0)
+    # Если Reddit не сработал -> 30% Новости ИИ
+    if not t and random.random() < 0.3:
+        news_theme = get_ai_news()
+        if news_theme:
+            t = f"Artistic interpretation of: {news_theme}"
+            source = "AI NEWS"
+            print(f"📰 ТЕМА ИЗ НОВОСТЕЙ: {news_theme}")
+
+    # Если всё еще нет темы -> ВНУТРЕННИЙ ГЕНЕРАТОР (GOD MODE V3.0)
+    if not t:
         subjects = [
             # Cyberpunk & Sci-Fi (Hardcore)
             "Old Cyberpunk Wizard", "Futuristic Samurai", "Neon Noir Detective", "Cyborg Geisha", 
@@ -234,58 +228,35 @@ def run_final():
         ]
         
         styles = [
-            # Rendering & Engines
             "Unreal Engine 5 Render", "Octane Render", "Redshift Render", "V-Ray", "Blender Cycles",
-            "Cinema 4D", "Unity Engine", "Lumen Global Illumination", "Ray Tracing", "Path Tracing",
-            
-            # Photography & Lenses
             "Hyper-realistic Photo", "8k Raw Photo", "Macro Lens Detail", "Long Exposure", 
-            "Bokeh Depth of Field", "Fish-eye Lens", "Drone Shot", "Studio Lighting", 
-            "National Geographic Style", "Polaroid Vintage", "Double Exposure", "Tilt-Shift",
-            "Wide Angle Lens", "Telephoto Lens", "Motion Blur", "Ultrawide", "GoPro Footage",
-            
-            # Artistic Styles & Movements
-            "Cinematic Shot", "Dark Moody Texture", "Cyber-Renaissance", "Biopunk", "Solvedpunk", 
-            "Dieselpunk", "Vaporwave", "Synthwave", "Gothic Futurism", "Baroque Sci-Fi", 
-            "Rococo Cyberpunk", "Abstract Expressionism", "Surrealism", "Pop Art Neon",
-            "Ukiyo-e Cyber Style", "Oil Painting Impasto", "Watercolor Splatter", "Ink Wash Painting",
-            "Marble Sculpture", "Glass Blowing Art", "Origami Paper Art", "Low Poly 3D",
-            "Bauhaus Style", "Art Deco", "Constructivism", "Brutalism", "Noir Style",
-            "Pointillism", "Dadaism", "Glitch Art", "Voxel Art", "Papercut Style", 
-            "Stained Glass", "Graffiti Art", "Charcoal Sketch", "Pastel Drawing", "Matte Painting"
+            "Cinematic Shot", "Cyber-Renaissance", "Biopunk", "Solvedpunk", 
+            "Vaporwave", "Synthwave", "Gothic Futurism", "Baroque Sci-Fi", 
+            "Rococo Cyberpunk", "Pop Art Neon", "Glitch Art", "Bauhaus Style", "Voxel Art"
         ]
         
         lighting = [
-            # Light Types
             "Volumetric Lighting", "Bioluminescence", "Neon Glow", "God Rays", "Rim Lighting", 
             "Cinematic Color Grading", "Dark Contrast", "Pastel Soft Light", "Cyber-Blue Bloom", 
-            "Golden Hour", "Midnight Rain Reflections", "Studio Softbox", "Hard Shadows",
-            "Rembrandt Lighting", "Chiaroscuro", "Cyber-Green Haze", "Red Alert Emergency Light",
-            "Underwater Caustics", "Firelight", "Starlight from Billions of Stars", "Eclipse Light"
+            "Golden Hour", "Midnight Rain Reflections", "Cyber-Green Haze", "Rembrandt Lighting"
         ]
         
         contexts = [
             "in heavy rain at night", "standing on a cliff edge", 
             "surrounded by floating crystals", "in a neon-lit alleyway", 
-            "with glowing eyes", "reflecting in a puddle", 
-            "in a dense misty forest", "under a double moon sky",
+            "with glowing eyes", "under a double moon sky",
             "fighting a shadow monster", "reading a holographic scroll",
             "drinking coffee in space", "playing chess with death",
             "dissolving into data", "blooming with flowers",
-            "frozen in time", "burning with cold fire",
-            "falling through the sky", "meditating on a mountain peak",
-            "exploring a cave", "looking at the viewer", "dancing in the void",
-            "screaming in silence", "laughing at the chaos"
+            "meditating on a mountain peak", "dancing in the void"
         ]
         
         s = random.choice(subjects)
         st1 = random.choice(styles)
-        st2 = random.choice(styles) # Smeshivaem stili
+        st2 = random.choice(styles)
         l = random.choice(lighting)
         c = random.choice(contexts)
-        
-        # Super-Combo Prompt (Enhanced God Mode)
-        t = f"{st1} and {st2} style of {s} {c}, with {l}, masterpiece, best quality, 8k, highly detailed, trending on artstation, sharp focus"
+        t = f"{st1} and {st2} style of {s} {c}, with {l}, masterpiece, 8k, detailed"
         print(f"🎲 Сгенерирована тема (God Mode V3.0): {t}")
     
     

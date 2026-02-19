@@ -1,13 +1,16 @@
-name: Auto Post AI News
+name: FrieNDLee Art Bot
 
 on:
   schedule:
     # АРТ: Утро (9:00), Обед (14:00), Вечер (19:00), Ночь (21:00) МСК (UTC: 6, 11, 16, 18)
     - cron: '0 6,11,16,18 * * *'
-  workflow_dispatch: # Кнопка ручного запуска
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
 jobs:
   post_art:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -32,4 +35,4 @@ jobs:
           HF_KEY: ${{ secrets.HF_KEY }}
           CLOUDFLARE_ID: ${{ secrets.CLOUDFLARE_ID }}
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
-        run: python main.py --mode art
+        run: python main.py
