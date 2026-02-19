@@ -396,7 +396,7 @@ def run_final():
             r = requests.get(poll_url, timeout=60)
             if r.status_code == 200: 
                 print(f"📊 Downloaded: {len(r.content)} bytes")
-                if len(r.content) > 5000:
+                if len(r.content) > 2000:
                     image_data = io.BytesIO(r.content)
                     print("✅ Pollinations OK!")
         except: pass
