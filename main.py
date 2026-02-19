@@ -188,60 +188,80 @@ def run_final():
                  # Фолбек на генератор
                  pass 
         
-        # ВНУТРЕННИЙ ГЕНЕРАТОР (MEGA-EXPANSION V2.0)
+        # ВНУТРЕННИЙ ГЕНЕРАТОР (GOD MODE V3.0)
         subjects = [
-            # Cyberpunk & Sci-Fi
+            # Cyberpunk & Sci-Fi (Hardcore)
             "Old Cyberpunk Wizard", "Futuristic Samurai", "Neon Noir Detective", "Cyborg Geisha", 
             "High-Tech Astronaut", "Post-Apocalyptic Stalker", "Quantum Computer Core", "Mech Warrior",
             "Holographic AI Entity", "Time Traveler in Void", "Space Marine with Plasma Sword", 
             "Android with Porcelain Skin", "Glitch in Matrix", "Dyson Sphere", "Flying Car Chase",
             "Cyber-Monk Meditating", "Nanotech Swarm", "Robot playing Violin", "Hacker in VR",
+            "Retro-Futuristic TV Head Character", "Cassette Futurism Dashboard", "Atompunk City",
+            "Soviet Cyberpunk Panel Building", "Cybernetic Pharaoh", "Neon Demon", "Ghost in the Shell",
             
-            # Fantasy & Myth
+            # Fantasy & Myth (Epic)
             "Ethereal Goddess", "Viking Warlord", "Mythical Dragon", "Ancient Greek Statue with Neon",
             "Crystal Golem", "Phoenix Rising from Ashes", "Elf Archer with Laser Bow", "Necromancer in City",
             "Floating Island Castle", "Magic Potion Shop", "Forest Spirit", "Demon Hunter", "Vampire Lord",
             "Werewolf in Suit", "Ghost Ship inside Bottle", "Mermaid in Toxic Ocean", "Fallen Angel",
+            "Cthulhu in Cyberpunk City", "Skeleton playing Saxophone", "Knight fighting Dragon in Space",
+            "Anubis with Laser Eyes", "Medusa with Fiber Optic Hair", "Valkyrie on Hoverbike",
             
-            # Nature & Bio-Mech
+            # Nature & Bio-Mech (Weird)
             "Biomechanical Tiger", "Cosmic Jellyfish", "Steampunk Owl", "Clockwork Heart", 
             "Electric Eel in Sky", "Crystal Flower", "Liquid Metal Cat", "Tree of Life in Space",
             "Mushroom Kingdom", "Lava Turtle", "Frozen Lightning", "Nebula in a Jar", "DNA Helix Galaxy",
+            "Snail with Tiny House", "Whale floating over City", "Spider made of Glass", "Radioactive Butterfly",
+            "Fox with 9 Tails of Fire", "Owl made of Books", "Lion made of Stars",
             
-            # Abstract & Surreal
+            # Abstract & Surreal (Mind-Bending)
             "Fractal Soul", "Melting Clocks in Desert", "Stairway to Heaven", "Mirror Dimension",
             "Human Silhouette made of Stars", "Exploding Color Dust", "Liquid Gold River", 
             "Glass Chess Board", "Portal to Another World", "Brain connected to Universe",
-            "Eye of the Storm", "Sound Waves visible", "Time Frozen in Amber",
+            "Eye of the Storm", "Sound Waves visible", "Time Frozen in Amber", "Universe inside a Marble",
+            "Tiny World inside a Lightbulb", "Shipwreck in a Desert", "Oasis in Cyber-Wasteland",
+            "Chess Game between God and Devil", "Doorway in the Middle of Ocean",
             
-            # Architecture & Places
+            # Architecture & Places (Grand)
             "Futuristic Skyscraper", "Abandoned Space Station", "Underwater Hotel", "Cloud City", 
             "Cyberpunk Street Food Cart", "Temple of Lost Technology", "Library of Infinite Books", 
-            "Neon Jungle", "Mars Colony Greenhouse", "Vertical Forest City", "Gothic Cathedral in Space"
+            "Neon Jungle", "Mars Colony Greenhouse", "Vertical Forest City", "Gothic Cathedral in Space",
+            "Brutalist Concrete Bunker", "Art Deco Spaceport", "Pyramid of Glass", "Infinite Hallway",
+            
+            # Fashion & Avant-Garde
+            "Model in Liquid Glass Dress", "Cyber-Fashion Runway", "Mask made of Diamonds",
+            "Dress made of Smoke", "Suit made of Mirrors", "Shoes made of Lava", "Cyber-Goth Rave"
         ]
         
         styles = [
-            # Rendering
+            # Rendering & Engines
             "Unreal Engine 5 Render", "Octane Render", "Redshift Render", "V-Ray", "Blender Cycles",
-            "Cinema 4D", "Unity Engine", "Lumen Global Illumination", "Ray Tracing",
+            "Cinema 4D", "Unity Engine", "Lumen Global Illumination", "Ray Tracing", "Path Tracing",
             
-            # Photography
+            # Photography & Lenses
             "Hyper-realistic Photo", "8k Raw Photo", "Macro Lens Detail", "Long Exposure", 
             "Bokeh Depth of Field", "Fish-eye Lens", "Drone Shot", "Studio Lighting", 
             "National Geographic Style", "Polaroid Vintage", "Double Exposure", "Tilt-Shift",
+            "Wide Angle Lens", "Telephoto Lens", "Motion Blur", "Ultrawide", "GoPro Footage",
             
-            # Artistic
+            # Artistic Styles & Movements
             "Cinematic Shot", "Dark Moody Texture", "Cyber-Renaissance", "Biopunk", "Solvedpunk", 
             "Dieselpunk", "Vaporwave", "Synthwave", "Gothic Futurism", "Baroque Sci-Fi", 
             "Rococo Cyberpunk", "Abstract Expressionism", "Surrealism", "Pop Art Neon",
             "Ukiyo-e Cyber Style", "Oil Painting Impasto", "Watercolor Splatter", "Ink Wash Painting",
-            "Marble Sculpture", "Glass Blowing Art", "Origami Paper Art", "Low Poly 3D"
+            "Marble Sculpture", "Glass Blowing Art", "Origami Paper Art", "Low Poly 3D",
+            "Bauhaus Style", "Art Deco", "Constructivism", "Brutalism", "Noir Style",
+            "Pointillism", "Dadaism", "Glitch Art", "Voxel Art", "Papercut Style", 
+            "Stained Glass", "Graffiti Art", "Charcoal Sketch", "Pastel Drawing", "Matte Painting"
         ]
         
         lighting = [
+            # Light Types
             "Volumetric Lighting", "Bioluminescence", "Neon Glow", "God Rays", "Rim Lighting", 
             "Cinematic Color Grading", "Dark Contrast", "Pastel Soft Light", "Cyber-Blue Bloom", 
-            "Golden Hour", "Midnight Rain Reflections"
+            "Golden Hour", "Midnight Rain Reflections", "Studio Softbox", "Hard Shadows",
+            "Rembrandt Lighting", "Chiaroscuro", "Cyber-Green Haze", "Red Alert Emergency Light",
+            "Underwater Caustics", "Firelight", "Starlight from Billions of Stars", "Eclipse Light"
         ]
         
         contexts = [
@@ -252,7 +272,10 @@ def run_final():
             "fighting a shadow monster", "reading a holographic scroll",
             "drinking coffee in space", "playing chess with death",
             "dissolving into data", "blooming with flowers",
-            "frozen in time", "burning with cold fire"
+            "frozen in time", "burning with cold fire",
+            "falling through the sky", "meditating on a mountain peak",
+            "exploring a cave", "looking at the viewer", "dancing in the void",
+            "screaming in silence", "laughing at the chaos"
         ]
         
         s = random.choice(subjects)
@@ -261,9 +284,9 @@ def run_final():
         l = random.choice(lighting)
         c = random.choice(contexts)
         
-        # Super-Combo Prompt
-        t = f"{st1} and {st2} of a {s} {c}, {l}, highly detailed, sharp focus, masterpiece, 8k, trending on artstation"
-        print(f"🎲 Сгенерирована тема (Mix): {t}")
+        # Super-Combo Prompt (Enhanced God Mode)
+        t = f"{st1} and {st2} style of {s} {c}, with {l}, masterpiece, best quality, 8k, highly detailed, trending on artstation, sharp focus"
+        print(f"🎲 Сгенерирована тема (God Mode V3.0): {t}")
     
     
     # 1. Текст от Kie.ai (PRIORITY - DeepSeek лучше пишет по-русски)
