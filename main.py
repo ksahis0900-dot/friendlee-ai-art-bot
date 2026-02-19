@@ -388,18 +388,21 @@ def run_final():
                 print(f"⚠️ Cloudflare Status {r.status_code}")
         except: pass
 
-    # Pollinations (Download)
+    # Pollinations (Download) — NEW API: gen.pollinations.ai
     if not image_url and not image_data:
         print("🔄 Pollinations Final Backup...")
         try:
-            poll_url = f"https://pollinations.ai/p/{urllib.parse.quote(t)}?width=1024&height=1024&nologo=true"
-            r = requests.get(poll_url, timeout=60)
-            if r.status_code == 200: 
-                print(f"📊 Downloaded: {len(r.content)} bytes")
-                if len(r.content) > 1000:
-                    image_data = io.BytesIO(r.content)
-                    print("✅ Pollinations OK!")
-        except: pass
+            poll_url = f"https://gen.pollinations.ai/image/{urllib.parse.quote(t)}?width=1024&height=1024&nologo=true&model=flux"
+            print(f"📡 URL: {poll_url[:120]}...")
+            r = requests.get(poll_url, timeout=90, headers={"User-Agent": "Mozilla/5.0"})
+            print(f"📊 Status: {r.status_code}, Downloaded: {len(r.content)} bytes")
+            if r.status_code == 200 and len(r.content) > 5000:
+                image_data = io.BytesIO(r.content)
+                print("✅ Pollinations OK!")
+            else:
+                print(f"⚠️ Pollinations: маленький файл или ошибка. Первые 200 байт: {r.content[:200]}")
+        except Exception as e:
+            print(f"⚠️ Pollinations Exception: {e}")
 
     # --- 4. ШАГ: ОТПРАВКА ---
     if not image_url and not image_data: raise Exception("CRITICAL: All Art Engines failed.")
