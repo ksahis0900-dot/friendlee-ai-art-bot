@@ -4,10 +4,10 @@ import telebot
 import os
 import requests
 import random
-import io
 import urllib.parse
 import base64
 import json
+import time # Added for sleep
 from PIL import Image
 
 # НОВЫЙ КЛЮЧ
@@ -422,10 +422,83 @@ def run_final():
                 print(f"⚠️ Cloudflare Status {r.status_code}")
         except: pass
 
-    # Gemini Image (БЕСПЛАТНО с GOOGLE_KEY!)
+    # === БЕСПЛАТНЫЕ / РЕЗЕРВНЫЕ ДВИЖКИ (БЕЗ КЛЮЧЕЙ ИЛИ С ОБЩИМИ) ===
+
+    # 5. Airforce API (Flux - Free Tier)
+    if not image_url and not image_data:
+        print("🌪️ Airforce (Flux) пробуем...")
+        try:
+            # Airforce часто меняет модели, пробуем несколько популярных Flux
+            af_models = ["flux-2-klein-4b", "flux-2-dev", "flux-1-schnell"]
+            for model in af_models:
+                print(f"   Пробуем модель: {model}")
+                r = requests.post("https://api.airforce/v1/images/generations", 
+                                 json={"model": model, "prompt": t, "size": "1024x1024"},
+                                 timeout=40)
+                if r.status_code == 200:
+                    data = r.json()
+                    image_url = data['data'][0]['url']
+                    print(f"✅ Airforce OK! ({model})")
+                    break
+                elif r.status_code == 429:
+                    print("⚠️ Airforce Rate Limit (429) - пропускаем")
+                    break
+        except Exception as e:
+            print(f"⚠️ Airforce Error: {e}")
+
+    # 6. Pollinations.ai (URL Mode - работает без ключа!)
+    if not image_url and not image_data:
+        print("🌺 Pollinations (URL Mode) пробуем...")
+        try:
+            # Используем прямой URL-генератор, он бесплатный
+            encoded_prompt = urllib.parse.quote(t)
+            seed = random.randint(1, 99999)
+            poll_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=True&model=flux&seed={seed}"
+            r = requests.get(poll_url, timeout=60)
+            if r.status_code == 200 and len(r.content) > 5000:
+                image_data = io.BytesIO(r.content)
+                print("✅ Pollinations URL Mode OK!")
+            else:
+                print(f"⚠️ Pollinations Status: {r.status_code}")
+        except Exception as e:
+            print(f"⚠️ Pollinations Error: {e}")
+
+    # 7. Gemini Image (Если есть ключ)
     if not image_url and not image_data and GOOGLE_KEY:
-        print("🌟 Gemini Image (генерация картинки)...")
+        print("🌟 Gemini Image (Google)...")
         image_data = generate_image_gemini(t)
+
+    # 8. AI Horde (Анонимный режим, 512x512)
+    if not image_url and not image_data:
+        print("👾 AI Horde (Anonymous)...")
+        try:
+            horde_url = "https://stablehorde.net/api/v2/generate/async"
+            headers = {"apikey": "0000000000", "Content-Type": "application/json", "Client-Agent": "FriendLeeBot:2.0:friendlee"}
+            # Для анонимов ограничение 512x512 и меньше шагов
+            payload = {
+                "prompt": t,
+                "params": {"sampler_name": "k_euler", "cfg_scale": 7, "width": 512, "height": 512, "steps": 20},
+                "nsfw": False,
+                "censor_nsfw": True,
+                "models": ["ICBINP - I Can't Believe It's Not Photography"]
+            }
+            r = requests.post(horde_url, json=payload, headers=headers, timeout=30)
+            if r.status_code == 202:
+                req_id = r.json()['id']
+                # Ждем результат (макс 60 сек)
+                for _ in range(12):
+                    time.sleep(5)
+                    check = requests.get(f"https://stablehorde.net/api/v2/generate/status/{req_id}", headers=headers)
+                    if check.json()['done']:
+                        img_resp = requests.get(f"https://stablehorde.net/api/v2/generate/status/{req_id}", headers=headers).json()
+                        img_url = img_resp['generations'][0]['img']
+                        image_url = img_url # Horde дает URL
+                        print("✅ AI Horde OK!")
+                        break
+            else:
+                print(f"⚠️ Horde Status: {r.status_code} {r.text[:100]}")
+        except Exception as e:
+            print(f"⚠️ AI Horde Error: {e}")
 
     # === АБСОЛЮТНЫЙ РЕЗЕРВ: Picsum (красивые фото, 100% бесплатно, без ключей) ===
     if not image_url and not image_data:
