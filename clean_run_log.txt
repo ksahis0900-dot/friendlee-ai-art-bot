@@ -1,0 +1,64 @@
+post_art	Run Art Bot	﻿2026-02-19T18:22:49.4921070Z ##[group]Run python3 main.py
+post_art	Run Art Bot	2026-02-19T18:22:49.4921389Z [36;1mpython3 main.py[0m
+post_art	Run Art Bot	2026-02-19T18:22:49.4970436Z shell: /usr/bin/bash -e {0}
+post_art	Run Art Bot	2026-02-19T18:22:49.4970690Z env:
+post_art	Run Art Bot	2026-02-19T18:22:49.4970970Z   pythonLocation: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T18:22:49.4971414Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib/pkgconfig
+post_art	Run Art Bot	2026-02-19T18:22:49.4971842Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T18:22:49.4972237Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T18:22:49.4972618Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T18:22:49.4973003Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib
+post_art	Run Art Bot	2026-02-19T18:22:49.4973606Z   BOT_TOKEN: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4973995Z   CHANNEL_ID: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4974268Z   GOOGLE_KEY: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4974610Z   SILICONFLOW_KEY: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4974880Z   RUNWARE_KEY: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4975106Z   KIE_KEY: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4975377Z   HF_KEY: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4975609Z   CLOUDFLARE_ID: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4975937Z   CLOUDFLARE_TOKEN: ***
+post_art	Run Art Bot	2026-02-19T18:22:49.4976166Z ##[endgroup]
+post_art	Run Art Bot	2026-02-19T18:23:02.3587971Z Traceback (most recent call last):
+post_art	Run Art Bot	2026-02-19T18:23:02.3589260Z 🚀 BOOTING FRIE-ND-LEE ART BOT...
+post_art	Run Art Bot	2026-02-19T18:23:02.3597954Z   File "/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot/main.py", line 486, in <module>
+post_art	Run Art Bot	2026-02-19T18:23:02.3599487Z 🛠️ DEBUG: sys.version: 3.9.25 (main, Nov  3 2025, 15:16:36) 
+post_art	Run Art Bot	2026-02-19T18:23:02.3600089Z [GCC 13.3.0]
+post_art	Run Art Bot	2026-02-19T18:23:02.3600526Z 🛠️ DEBUG: sys.argv: ['main.py']
+post_art	Run Art Bot	2026-02-19T18:23:02.3601163Z 🛠️ DEBUG: TOKEN prefix: 85328...
+post_art	Run Art Bot	2026-02-19T18:23:02.3601981Z 🛠️ DEBUG: CHANNEL_ID: '***' (Type: <class 'str'>)
+post_art	Run Art Bot	2026-02-19T18:23:02.3602611Z 🤖 Бот авторизован: @Avatar2026_bot
+post_art	Run Art Bot	2026-02-19T18:23:02.3603499Z --- FrieNDLee_FTP BOT (v2.0) 🚀 ---
+post_art	Run Art Bot	2026-02-19T18:23:02.3603993Z 🌍 Ищу вдохновение на Reddit...
+post_art	Run Art Bot	2026-02-19T18:23:02.3605297Z 🎲 Сгенерирована тема (God Mode V3.0): Bauhaus Style and Hyper-realistic Photo style of Mushroom Kingdom dancing in the void, with Rim Lighting, masterpiece, 8k, detailed
+post_art	Run Art Bot	2026-02-19T18:23:02.3606424Z 🧠 Kie.ai (DeepSeek) пишет текст...
+post_art	Run Art Bot	2026-02-19T18:23:02.3607291Z Kie.ai Error: {"timestamp":1771525370351,"status":404,"error":"Not Found","message":"No message available","path":"/v1/chat/completions"}
+post_art	Run Art Bot	2026-02-19T18:23:02.3608252Z ⚠️ Kie.ai молчит. Пробую Gemini...
+post_art	Run Art Bot	2026-02-19T18:23:02.3608690Z 📝 Gemini пишет текст...
+post_art	Run Art Bot	2026-02-19T18:23:02.3609358Z ⚠️ Gemini молчит. Пробую Pollinations AI...
+post_art	Run Art Bot	2026-02-19T18:23:02.3609937Z 🧠 Pollinations AI (Backup Brain) пишет текст...
+post_art	Run Art Bot	2026-02-19T18:23:02.3610492Z 🎨 SiliconFlow (FLUX.1) начинает работу...
+post_art	Run Art Bot	2026-02-19T18:23:02.3611001Z ⚠️ Ошибка SiliconFlow: "Api key is invalid"
+post_art	Run Art Bot	2026-02-19T18:23:02.3611539Z ⚡ Runware (Backup) начинает работу...
+post_art	Run Art Bot	2026-02-19T18:23:02.3611995Z ⚠️ Ошибка Runware: {
+post_art	Run Art Bot	2026-02-19T18:23:02.3612321Z     "data": [],
+post_art	Run Art Bot	2026-02-19T18:23:02.3612620Z     "errors": [
+post_art	Run Art Bot	2026-02-19T18:23:02.3612914Z         {
+post_art	Run Art Bot	2026-02-19T18:23:02.3613278Z             "code": "insufficientCredits",
+post_art	Run Art Bot	2026-02-19T18:23:02.3614250Z             "message": "Insufficient credits, please add your credit card and top-up your balance at https://my.runware.ai/wallet",
+post_art	Run Art Bot	2026-02-19T18:23:02.3615278Z             "taskType": "imageInference",
+post_art	Run Art Bot	2026-02-19T18:23:02.3615825Z             "taskUUID": "69ae2d9b-1c0c-41d0-87ae-dc54c1f14713"
+post_art	Run Art Bot	2026-02-19T18:23:02.3616309Z         }
+post_art	Run Art Bot	2026-02-19T18:23:02.3616576Z     ]
+post_art	Run Art Bot	2026-02-19T18:23:02.3616847Z }
+post_art	Run Art Bot	2026-02-19T18:23:02.3617225Z 🤗 Hugging Face (Backup) начинает работу...
+post_art	Run Art Bot	2026-02-19T18:23:02.3618783Z ⚠️ Ошибка Hugging Face: {"error":"https://api-inference.huggingface.co is no longer supported. Please use https://router.huggingface.co instead."}
+post_art	Run Art Bot	2026-02-19T18:23:02.3620171Z ☁️ Cloudflare (Backup #2) начинает работу...
+post_art	Run Art Bot	2026-02-19T18:23:02.3621205Z ⚠️ Ошибка Cloudflare: {"result":null,"success":false,"errors":[{"code":10000,"message":"Authentication error"}],"messages":[]}
+post_art	Run Art Bot	2026-02-19T18:23:02.3622182Z 🔄 ПЛАН C: Pollinations (Download Mode)...
+post_art	Run Art Bot	2026-02-19T18:23:02.3623840Z ⚠️ Ошибка Pollinations Download: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: IMAGE_PROCESS_FAILED
+post_art	Run Art Bot	2026-02-19T18:23:02.3625668Z ❌ Все методы загрузки фото провалились. Тема: Bauhaus Style and Hyper-realistic Photo style of Mushroom Kingdom dancing in the void, with Rim Lighting, masterpiece, 8k, detailed
+post_art	Run Art Bot	2026-02-19T18:23:02.3626768Z     run_final()
+post_art	Run Art Bot	2026-02-19T18:23:02.3627617Z   File "/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot/main.py", line 483, in run_final
+post_art	Run Art Bot	2026-02-19T18:23:02.3628716Z     raise Exception("Critical Failure: Bot failed to post art after all attempts.")
+post_art	Run Art Bot	2026-02-19T18:23:02.3629722Z Exception: Critical Failure: Bot failed to post art after all attempts.
+post_art	Run Art Bot	2026-02-19T18:23:02.3871108Z ##[error]Process completed with exit code 1.

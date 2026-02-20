@@ -1,0 +1,416 @@
+post_art	Set up job	﻿2026-02-19T19:04:24.4677362Z Current runner version: '2.331.0'
+post_art	Set up job	2026-02-19T19:04:24.4714092Z ##[group]Runner Image Provisioner
+post_art	Set up job	2026-02-19T19:04:24.4715750Z Hosted Compute Agent
+post_art	Set up job	2026-02-19T19:04:24.4716836Z Version: 20260213.493
+post_art	Set up job	2026-02-19T19:04:24.4718077Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+post_art	Set up job	2026-02-19T19:04:24.4719439Z Build Date: 2026-02-13T00:28:41Z
+post_art	Set up job	2026-02-19T19:04:24.4720861Z Worker ID: {448c791a-0b96-4c09-b7b4-327a669f0f65}
+post_art	Set up job	2026-02-19T19:04:24.4722360Z Azure Region: eastus2
+post_art	Set up job	2026-02-19T19:04:24.4723404Z ##[endgroup]
+post_art	Set up job	2026-02-19T19:04:24.4726014Z ##[group]Operating System
+post_art	Set up job	2026-02-19T19:04:24.4727218Z Ubuntu
+post_art	Set up job	2026-02-19T19:04:24.4728136Z 24.04.3
+post_art	Set up job	2026-02-19T19:04:24.4729191Z LTS
+post_art	Set up job	2026-02-19T19:04:24.4730026Z ##[endgroup]
+post_art	Set up job	2026-02-19T19:04:24.4731280Z ##[group]Runner Image
+post_art	Set up job	2026-02-19T19:04:24.4732510Z Image: ubuntu-24.04
+post_art	Set up job	2026-02-19T19:04:24.4733578Z Version: 20260217.30.1
+post_art	Set up job	2026-02-19T19:04:24.4735769Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260217.30/images/ubuntu/Ubuntu2404-Readme.md
+post_art	Set up job	2026-02-19T19:04:24.4738902Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260217.30
+post_art	Set up job	2026-02-19T19:04:24.4740975Z ##[endgroup]
+post_art	Set up job	2026-02-19T19:04:24.4743220Z ##[group]GITHUB_TOKEN Permissions
+post_art	Set up job	2026-02-19T19:04:24.4746547Z Contents: read
+post_art	Set up job	2026-02-19T19:04:24.4747561Z Metadata: read
+post_art	Set up job	2026-02-19T19:04:24.4748691Z Packages: read
+post_art	Set up job	2026-02-19T19:04:24.4750188Z ##[endgroup]
+post_art	Set up job	2026-02-19T19:04:24.4753861Z Secret source: Actions
+post_art	Set up job	2026-02-19T19:04:24.4755413Z Prepare workflow directory
+post_art	Set up job	2026-02-19T19:04:24.5223574Z Prepare all required actions
+post_art	Set up job	2026-02-19T19:04:24.5279196Z Getting action download info
+post_art	Set up job	2026-02-19T19:04:24.8551570Z Download action repository 'actions/checkout@v3' (SHA:f43a0e5ff2bd294095638e18286ca9a3d1956744)
+post_art	Set up job	2026-02-19T19:04:25.0309757Z Download action repository 'actions/setup-python@v4' (SHA:7f4fc3e22c37d6ff65e88745f38bd3157c663f7c)
+post_art	Set up job	2026-02-19T19:04:25.2477366Z Complete job name: post_art
+post_art	Checkout code	﻿2026-02-19T19:04:25.3186579Z ##[group]Run actions/checkout@v3
+post_art	Checkout code	2026-02-19T19:04:25.3187505Z with:
+post_art	Checkout code	2026-02-19T19:04:25.3188068Z   repository: ksahis0900-dot/friendlee-ai-art-bot
+post_art	Checkout code	2026-02-19T19:04:25.3188892Z   token: ***
+post_art	Checkout code	2026-02-19T19:04:25.3189334Z   ssh-strict: true
+post_art	Checkout code	2026-02-19T19:04:25.3189809Z   persist-credentials: true
+post_art	Checkout code	2026-02-19T19:04:25.3190536Z   clean: true
+post_art	Checkout code	2026-02-19T19:04:25.3191015Z   sparse-checkout-cone-mode: true
+post_art	Checkout code	2026-02-19T19:04:25.3191547Z   fetch-depth: 1
+post_art	Checkout code	2026-02-19T19:04:25.3191993Z   fetch-tags: false
+post_art	Checkout code	2026-02-19T19:04:25.3192443Z   lfs: false
+post_art	Checkout code	2026-02-19T19:04:25.3192930Z   submodules: false
+post_art	Checkout code	2026-02-19T19:04:25.3193448Z   set-safe-directory: true
+post_art	Checkout code	2026-02-19T19:04:25.3194247Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.4066272Z Syncing repository: ksahis0900-dot/friendlee-ai-art-bot
+post_art	Checkout code	2026-02-19T19:04:25.4068146Z ##[group]Getting Git version info
+post_art	Checkout code	2026-02-19T19:04:25.4069038Z Working directory is '/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot'
+post_art	Checkout code	2026-02-19T19:04:25.4070508Z [command]/usr/bin/git version
+post_art	Checkout code	2026-02-19T19:04:25.4084551Z git version 2.53.0
+post_art	Checkout code	2026-02-19T19:04:25.4111811Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.4128824Z Temporarily overriding HOME='/home/runner/work/_temp/9fd4b566-0598-4f0a-b1de-f6f4cfb50588' before making global git config changes
+post_art	Checkout code	2026-02-19T19:04:25.4131572Z Adding repository directory to the temporary git global config as a safe directory
+post_art	Checkout code	2026-02-19T19:04:25.4133947Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot
+post_art	Checkout code	2026-02-19T19:04:25.4175468Z Deleting the contents of '/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot'
+post_art	Checkout code	2026-02-19T19:04:25.4179119Z ##[group]Initializing the repository
+post_art	Checkout code	2026-02-19T19:04:25.4183848Z [command]/usr/bin/git init /home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot
+post_art	Checkout code	2026-02-19T19:04:25.4274268Z hint: Using 'master' as the name for the initial branch. This default branch name
+post_art	Checkout code	2026-02-19T19:04:25.4276062Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+post_art	Checkout code	2026-02-19T19:04:25.4277753Z hint: to use in all of your new repositories, which will suppress this warning,
+post_art	Checkout code	2026-02-19T19:04:25.4279311Z hint: call:
+post_art	Checkout code	2026-02-19T19:04:25.4280013Z hint:
+post_art	Checkout code	2026-02-19T19:04:25.4280977Z hint: 	git config --global init.defaultBranch <name>
+post_art	Checkout code	2026-02-19T19:04:25.4281794Z hint:
+post_art	Checkout code	2026-02-19T19:04:25.4282410Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+post_art	Checkout code	2026-02-19T19:04:25.4283485Z hint: 'development'. The just-created branch can be renamed via this command:
+post_art	Checkout code	2026-02-19T19:04:25.4284399Z hint:
+post_art	Checkout code	2026-02-19T19:04:25.4284874Z hint: 	git branch -m <name>
+post_art	Checkout code	2026-02-19T19:04:25.4285372Z hint:
+post_art	Checkout code	2026-02-19T19:04:25.4286009Z hint: Disable this message with "git config set advice.defaultBranchName false"
+post_art	Checkout code	2026-02-19T19:04:25.4287380Z Initialized empty Git repository in /home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot/.git/
+post_art	Checkout code	2026-02-19T19:04:25.4289326Z [command]/usr/bin/git remote add origin https://github.com/ksahis0900-dot/friendlee-ai-art-bot
+post_art	Checkout code	2026-02-19T19:04:25.4321427Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.4322275Z ##[group]Disabling automatic garbage collection
+post_art	Checkout code	2026-02-19T19:04:25.4323896Z [command]/usr/bin/git config --local gc.auto 0
+post_art	Checkout code	2026-02-19T19:04:25.4352892Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.4354358Z ##[group]Setting up auth
+post_art	Checkout code	2026-02-19T19:04:25.4359143Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+post_art	Checkout code	2026-02-19T19:04:25.4392020Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+post_art	Checkout code	2026-02-19T19:04:25.4734365Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+post_art	Checkout code	2026-02-19T19:04:25.4768055Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+post_art	Checkout code	2026-02-19T19:04:25.5029467Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+post_art	Checkout code	2026-02-19T19:04:25.5067262Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.5068688Z ##[group]Fetching the repository
+post_art	Checkout code	2026-02-19T19:04:25.5077744Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +425eb01676cb974188b3ed4809fab201b1f24629:refs/remotes/origin/master
+post_art	Checkout code	2026-02-19T19:04:25.6791234Z remote: Enumerating objects: 17, done.        
+post_art	Checkout code	2026-02-19T19:04:25.6792796Z remote: Counting objects:   5% (1/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6794174Z remote: Counting objects:  11% (2/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6795661Z remote: Counting objects:  17% (3/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6797165Z remote: Counting objects:  23% (4/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6798257Z remote: Counting objects:  29% (5/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6799401Z remote: Counting objects:  35% (6/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6800646Z remote: Counting objects:  41% (7/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6801361Z remote: Counting objects:  47% (8/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6802097Z remote: Counting objects:  52% (9/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6802818Z remote: Counting objects:  58% (10/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6803527Z remote: Counting objects:  64% (11/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6804239Z remote: Counting objects:  70% (12/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6804950Z remote: Counting objects:  76% (13/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6806070Z remote: Counting objects:  82% (14/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6807371Z remote: Counting objects:  88% (15/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6808351Z remote: Counting objects:  94% (16/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6808998Z remote: Counting objects: 100% (17/17)        
+post_art	Checkout code	2026-02-19T19:04:25.6809673Z remote: Counting objects: 100% (17/17), done.        
+post_art	Checkout code	2026-02-19T19:04:25.6810551Z remote: Compressing objects:   7% (1/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6811846Z remote: Compressing objects:  14% (2/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6812988Z remote: Compressing objects:  21% (3/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6813744Z remote: Compressing objects:  28% (4/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6815082Z remote: Compressing objects:  35% (5/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6816719Z remote: Compressing objects:  42% (6/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6817510Z remote: Compressing objects:  50% (7/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6818166Z remote: Compressing objects:  57% (8/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6818796Z remote: Compressing objects:  64% (9/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6819491Z remote: Compressing objects:  71% (10/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6820151Z remote: Compressing objects:  78% (11/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6821048Z remote: Compressing objects:  85% (12/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6821697Z remote: Compressing objects:  92% (13/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6822367Z remote: Compressing objects: 100% (14/14)        
+post_art	Checkout code	2026-02-19T19:04:25.6823053Z remote: Compressing objects: 100% (14/14), done.        
+post_art	Checkout code	2026-02-19T19:04:25.6916304Z remote: Total 17 (delta 1), reused 13 (delta 0), pack-reused 0 (from 0)        
+post_art	Checkout code	2026-02-19T19:04:25.6978653Z From https://github.com/ksahis0900-dot/friendlee-ai-art-bot
+post_art	Checkout code	2026-02-19T19:04:25.6980444Z  * [new ref]         425eb01676cb974188b3ed4809fab201b1f24629 -> origin/master
+post_art	Checkout code	2026-02-19T19:04:25.7014633Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.7015526Z ##[group]Determining the checkout info
+post_art	Checkout code	2026-02-19T19:04:25.7016772Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.7017784Z ##[group]Checking out the ref
+post_art	Checkout code	2026-02-19T19:04:25.7021244Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+post_art	Checkout code	2026-02-19T19:04:25.7076965Z Reset branch 'master'
+post_art	Checkout code	2026-02-19T19:04:25.7080613Z branch 'master' set up to track 'origin/master'.
+post_art	Checkout code	2026-02-19T19:04:25.7087407Z ##[endgroup]
+post_art	Checkout code	2026-02-19T19:04:25.7121151Z [command]/usr/bin/git log -1 --format='%H'
+post_art	Checkout code	2026-02-19T19:04:25.7144510Z '425eb01676cb974188b3ed4809fab201b1f24629'
+post_art	Set up Python	﻿2026-02-19T19:04:25.7383418Z ##[group]Run actions/setup-python@v4
+post_art	Set up Python	2026-02-19T19:04:25.7384047Z with:
+post_art	Set up Python	2026-02-19T19:04:25.7384467Z   python-version: 3.9
+post_art	Set up Python	2026-02-19T19:04:25.7384950Z   check-latest: false
+post_art	Set up Python	2026-02-19T19:04:25.7385568Z   token: ***
+post_art	Set up Python	2026-02-19T19:04:25.7386070Z   update-environment: true
+post_art	Set up Python	2026-02-19T19:04:25.7386641Z   allow-prereleases: false
+post_art	Set up Python	2026-02-19T19:04:25.7387161Z ##[endgroup]
+post_art	Set up Python	2026-02-19T19:04:25.9179321Z ##[group]Installed versions
+post_art	Set up Python	2026-02-19T19:04:25.9897912Z Version 3.9 was not found in the local cache
+post_art	Set up Python	2026-02-19T19:04:26.3630458Z Version 3.9 is available for downloading
+post_art	Set up Python	2026-02-19T19:04:26.3633088Z Download from "https://github.com/actions/python-versions/releases/download/3.9.25-19039189640/python-3.9.25-linux-24.04-x64.tar.gz"
+post_art	Set up Python	2026-02-19T19:04:26.9666026Z Extract downloaded archive
+post_art	Set up Python	2026-02-19T19:04:26.9806854Z [command]/usr/bin/tar xz --warning=no-unknown-keyword -C /home/runner/work/_temp/98407e15-605a-4175-beb8-dce8eddb334a -f /home/runner/work/_temp/0f279ecd-a479-4503-8348-6bf983392033
+post_art	Set up Python	2026-02-19T19:04:28.3417767Z Execute installation script
+post_art	Set up Python	2026-02-19T19:04:28.3510530Z Check if Python hostedtoolcache folder exist...
+post_art	Set up Python	2026-02-19T19:04:28.3511919Z Create Python 3.9.25 folder
+post_art	Set up Python	2026-02-19T19:04:28.3527780Z Copy Python binaries to hostedtoolcache folder
+post_art	Set up Python	2026-02-19T19:04:28.8727198Z Create additional symlinks (Required for the UsePythonVersion Azure Pipelines task and the setup-python GitHub Action)
+post_art	Set up Python	2026-02-19T19:04:28.8771910Z Upgrading pip...
+post_art	Set up Python	2026-02-19T19:04:31.4176116Z Looking in links: /tmp/tmptp946yb1
+post_art	Set up Python	2026-02-19T19:04:31.4181844Z Requirement already satisfied: setuptools in /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages (79.0.1)
+post_art	Set up Python	2026-02-19T19:04:31.4186643Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages (23.0.1)
+post_art	Set up Python	2026-02-19T19:04:33.1202774Z Collecting pip
+post_art	Set up Python	2026-02-19T19:04:33.1798857Z Downloading pip-26.0.1-py3-none-any.whl (1.8 MB)
+post_art	Set up Python	2026-02-19T19:04:33.2631331Z ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 22.3 MB/s eta 0:00:00
+post_art	Set up Python	2026-02-19T19:04:33.2632122Z 
+post_art	Set up Python	2026-02-19T19:04:33.3243427Z Installing collected packages: pip
+post_art	Set up Python	2026-02-19T19:04:33.3244295Z Attempting uninstall: pip
+post_art	Set up Python	2026-02-19T19:04:33.3250676Z Found existing installation: pip 23.0.1
+post_art	Set up Python	2026-02-19T19:04:33.5131409Z Uninstalling pip-23.0.1:
+post_art	Set up Python	2026-02-19T19:04:33.5206928Z Successfully uninstalled pip-23.0.1
+post_art	Set up Python	2026-02-19T19:04:34.3434732Z Successfully installed pip-26.0.1
+post_art	Set up Python	2026-02-19T19:04:34.4009742Z Create complete file
+post_art	Set up Python	2026-02-19T19:04:34.4054010Z Successfully set up CPython (3.9.25)
+post_art	Set up Python	2026-02-19T19:04:34.4055156Z ##[endgroup]
+post_art	Install dependencies	﻿2026-02-19T19:04:34.4199256Z ##[group]Run pip install -r requirements.txt
+post_art	Install dependencies	2026-02-19T19:04:34.4199745Z [36;1mpip install -r requirements.txt[0m
+post_art	Install dependencies	2026-02-19T19:04:34.4255181Z shell: /usr/bin/bash -e {0}
+post_art	Install dependencies	2026-02-19T19:04:34.4255507Z env:
+post_art	Install dependencies	2026-02-19T19:04:34.4255791Z   pythonLocation: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Install dependencies	2026-02-19T19:04:34.4256263Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib/pkgconfig
+post_art	Install dependencies	2026-02-19T19:04:34.4256723Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Install dependencies	2026-02-19T19:04:34.4257139Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Install dependencies	2026-02-19T19:04:34.4257536Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Install dependencies	2026-02-19T19:04:34.4257945Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib
+post_art	Install dependencies	2026-02-19T19:04:34.4258284Z ##[endgroup]
+post_art	Install dependencies	2026-02-19T19:04:35.3234595Z Collecting pyTelegramBotAPI (from -r requirements.txt (line 1))
+post_art	Install dependencies	2026-02-19T19:04:35.3732756Z   Downloading pytelegrambotapi-4.31.0-py3-none-any.whl.metadata (48 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.4218597Z Collecting requests (from -r requirements.txt (line 2))
+post_art	Install dependencies	2026-02-19T19:04:35.4303215Z   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.6631342Z Collecting Pillow (from -r requirements.txt (line 3))
+post_art	Install dependencies	2026-02-19T19:04:35.6769833Z   Downloading pillow-11.3.0-cp39-cp39-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.0 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.6985743Z Collecting google-generativeai (from -r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:35.7065640Z   Downloading google_generativeai-0.8.6-py3-none-any.whl.metadata (3.9 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.7271076Z Collecting feedparser (from -r requirements.txt (line 5))
+post_art	Install dependencies	2026-02-19T19:04:35.7354268Z   Downloading feedparser-6.0.12-py3-none-any.whl.metadata (2.7 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.8334935Z Collecting charset_normalizer<4,>=2 (from requests->-r requirements.txt (line 2))
+post_art	Install dependencies	2026-02-19T19:04:35.8423377Z   Downloading charset_normalizer-3.4.4-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (37 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.8643069Z Collecting idna<4,>=2.5 (from requests->-r requirements.txt (line 2))
+post_art	Install dependencies	2026-02-19T19:04:35.8725782Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.9047319Z Collecting urllib3<3,>=1.21.1 (from requests->-r requirements.txt (line 2))
+post_art	Install dependencies	2026-02-19T19:04:35.9139065Z   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.9412225Z Collecting certifi>=2017.4.17 (from requests->-r requirements.txt (line 2))
+post_art	Install dependencies	2026-02-19T19:04:35.9494349Z   Downloading certifi-2026.1.4-py3-none-any.whl.metadata (2.5 kB)
+post_art	Install dependencies	2026-02-19T19:04:35.9705543Z Collecting google-ai-generativelanguage==0.6.15 (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:35.9787432Z   Downloading google_ai_generativelanguage-0.6.15-py3-none-any.whl.metadata (5.7 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.0213579Z Collecting google-api-core (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.0296892Z   Downloading google_api_core-2.30.0-py3-none-any.whl.metadata (3.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.0951529Z Collecting google-api-python-client (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.1033818Z   Downloading google_api_python_client-2.190.0-py3-none-any.whl.metadata (7.0 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.1451766Z Collecting google-auth>=2.15.0 (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.1539290Z   Downloading google_auth-2.48.0-py3-none-any.whl.metadata (6.2 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.3702451Z Collecting protobuf (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.3786248Z   Downloading protobuf-6.33.5-cp39-abi3-manylinux2014_x86_64.whl.metadata (593 bytes)
+post_art	Install dependencies	2026-02-19T19:04:36.5241746Z Collecting pydantic (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.5328066Z   Downloading pydantic-2.12.5-py3-none-any.whl.metadata (90 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.5833227Z Collecting tqdm (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.5916495Z   Downloading tqdm-4.67.3-py3-none-any.whl.metadata (57 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.6216193Z Collecting typing-extensions (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.6302454Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.6962710Z Collecting google-auth>=2.15.0 (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.7047074Z   Downloading google_auth-2.49.0.dev0-py3-none-any.whl.metadata (6.0 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.7343227Z Collecting proto-plus<2.0.0dev,>=1.22.3 (from google-ai-generativelanguage==0.6.15->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.7423839Z   Downloading proto_plus-1.27.1-py3-none-any.whl.metadata (2.2 kB)
+post_art	Install dependencies	2026-02-19T19:04:36.7787851Z Collecting protobuf (from google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.7872363Z   Downloading protobuf-5.29.6-cp38-abi3-manylinux2014_x86_64.whl.metadata (592 bytes)
+post_art	Install dependencies	2026-02-19T19:04:36.8109457Z Collecting googleapis-common-protos<2.0.0,>=1.56.3 (from google-api-core->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:36.8193571Z   Downloading googleapis_common_protos-1.72.0-py3-none-any.whl.metadata (9.4 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.4836567Z Collecting grpcio<2.0.0,>=1.33.2 (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0dev,>=1.34.1->google-ai-generativelanguage==0.6.15->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:37.4919868Z   Downloading grpcio-1.78.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (3.8 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.5797374Z Collecting grpcio-status<2.0.0,>=1.33.2 (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0dev,>=1.34.1->google-ai-generativelanguage==0.6.15->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:37.5883681Z   Downloading grpcio_status-1.78.0-py3-none-any.whl.metadata (1.3 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.6147355Z Collecting pyasn1-modules>=0.2.1 (from google-auth>=2.15.0->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:37.6229503Z   Downloading pyasn1_modules-0.4.2-py3-none-any.whl.metadata (3.5 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.8348005Z Collecting cryptography>=38.0.3 (from google-auth>=2.15.0->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:37.8435437Z   Downloading cryptography-46.0.5-cp38-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.8718051Z INFO: pip is looking at multiple versions of grpcio-status to determine which version is compatible with other requirements. This could take a while.
+post_art	Install dependencies	2026-02-19T19:04:37.8725408Z Collecting grpcio-status<2.0.0,>=1.33.2 (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0dev,>=1.34.1->google-ai-generativelanguage==0.6.15->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:37.8808485Z   Downloading grpcio_status-1.76.0-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.8925204Z   Downloading grpcio_status-1.75.1-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9037408Z   Downloading grpcio_status-1.75.0-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9152566Z   Downloading grpcio_status-1.74.0-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9266377Z   Downloading grpcio_status-1.73.1-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9475243Z   Downloading grpcio_status-1.73.0-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9592508Z   Downloading grpcio_status-1.72.2-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9627381Z INFO: pip is still looking at multiple versions of grpcio-status to determine which version is compatible with other requirements. This could take a while.
+post_art	Install dependencies	2026-02-19T19:04:37.9722086Z   Downloading grpcio_status-1.72.1-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:37.9834272Z   Downloading grpcio_status-1.71.2-py3-none-any.whl.metadata (1.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:38.0523773Z Collecting sgmllib3k (from feedparser->-r requirements.txt (line 5))
+post_art	Install dependencies	2026-02-19T19:04:38.0603742Z   Downloading sgmllib3k-1.0.0.tar.gz (5.8 kB)
+post_art	Install dependencies	2026-02-19T19:04:38.0681785Z   Installing build dependencies: started
+post_art	Install dependencies	2026-02-19T19:04:39.0401788Z   Installing build dependencies: finished with status 'done'
+post_art	Install dependencies	2026-02-19T19:04:39.0413242Z   Getting requirements to build wheel: started
+post_art	Install dependencies	2026-02-19T19:04:39.3901250Z   Getting requirements to build wheel: finished with status 'done'
+post_art	Install dependencies	2026-02-19T19:04:39.3916879Z   Preparing metadata (pyproject.toml): started
+post_art	Install dependencies	2026-02-19T19:04:39.5715502Z   Preparing metadata (pyproject.toml): finished with status 'done'
+post_art	Install dependencies	2026-02-19T19:04:39.7042648Z Collecting cffi>=2.0.0 (from cryptography>=38.0.3->google-auth>=2.15.0->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.7131818Z   Downloading cffi-2.0.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+post_art	Install dependencies	2026-02-19T19:04:39.7346461Z Collecting pycparser (from cffi>=2.0.0->cryptography>=38.0.3->google-auth>=2.15.0->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.7427902Z   Downloading pycparser-2.23-py3-none-any.whl.metadata (993 bytes)
+post_art	Install dependencies	2026-02-19T19:04:39.7709211Z Collecting pyasn1<0.7.0,>=0.6.1 (from pyasn1-modules>=0.2.1->google-auth>=2.15.0->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.7793451Z   Downloading pyasn1-0.6.2-py3-none-any.whl.metadata (8.4 kB)
+post_art	Install dependencies	2026-02-19T19:04:39.8006814Z Collecting httplib2<1.0.0,>=0.19.0 (from google-api-python-client->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.8088072Z   Downloading httplib2-0.31.2-py3-none-any.whl.metadata (2.2 kB)
+post_art	Install dependencies	2026-02-19T19:04:39.8408587Z Collecting google-auth-httplib2<1.0.0,>=0.2.0 (from google-api-python-client->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.8493266Z   Downloading google_auth_httplib2-0.3.0-py3-none-any.whl.metadata (3.1 kB)
+post_art	Install dependencies	2026-02-19T19:04:39.8658987Z Collecting uritemplate<5,>=3.0.1 (from google-api-python-client->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.8741924Z   Downloading uritemplate-4.2.0-py3-none-any.whl.metadata (2.6 kB)
+post_art	Install dependencies	2026-02-19T19:04:39.9096729Z Collecting pyparsing<4,>=3.1 (from httplib2<1.0.0,>=0.19.0->google-api-python-client->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.9183293Z   Downloading pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+post_art	Install dependencies	2026-02-19T19:04:39.9360092Z Collecting annotated-types>=0.6.0 (from pydantic->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:39.9442360Z   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+post_art	Install dependencies	2026-02-19T19:04:40.8736869Z Collecting pydantic-core==2.41.5 (from pydantic->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:40.8825791Z   Downloading pydantic_core-2.41.5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+post_art	Install dependencies	2026-02-19T19:04:40.9017144Z Collecting typing-inspection>=0.4.2 (from pydantic->google-generativeai->-r requirements.txt (line 4))
+post_art	Install dependencies	2026-02-19T19:04:40.9097010Z   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+post_art	Install dependencies	2026-02-19T19:04:40.9286029Z Downloading pytelegrambotapi-4.31.0-py3-none-any.whl (304 kB)
+post_art	Install dependencies	2026-02-19T19:04:40.9610913Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+post_art	Install dependencies	2026-02-19T19:04:40.9750845Z Downloading charset_normalizer-3.4.4-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+post_art	Install dependencies	2026-02-19T19:04:40.9922698Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.0039929Z Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.0207551Z Downloading pillow-11.3.0-cp39-cp39-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+post_art	Install dependencies	2026-02-19T19:04:41.2103504Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 36.6 MB/s  0:00:00
+post_art	Install dependencies	2026-02-19T19:04:41.2188543Z Downloading google_generativeai-0.8.6-py3-none-any.whl (155 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.2303585Z Downloading google_ai_generativelanguage-0.6.15-py3-none-any.whl (1.3 MB)
+post_art	Install dependencies	2026-02-19T19:04:41.2522326Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 59.9 MB/s  0:00:00
+post_art	Install dependencies	2026-02-19T19:04:41.2602434Z Downloading google_api_core-2.30.0-py3-none-any.whl (173 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.2716089Z Downloading google_auth-2.49.0.dev0-py3-none-any.whl (236 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.2837124Z Downloading googleapis_common_protos-1.72.0-py3-none-any.whl (297 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.2965441Z Downloading grpcio-1.78.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (6.7 MB)
+post_art	Install dependencies	2026-02-19T19:04:41.3712482Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.7/6.7 MB 91.0 MB/s  0:00:00
+post_art	Install dependencies	2026-02-19T19:04:41.3798866Z Downloading grpcio_status-1.71.2-py3-none-any.whl (14 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.3900746Z Downloading proto_plus-1.27.1-py3-none-any.whl (50 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.4005644Z Downloading protobuf-5.29.6-cp38-abi3-manylinux2014_x86_64.whl (320 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.4121012Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.4220093Z Downloading feedparser-6.0.12-py3-none-any.whl (81 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.4323054Z Downloading certifi-2026.1.4-py3-none-any.whl (152 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.4431250Z Downloading cryptography-46.0.5-cp38-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+post_art	Install dependencies	2026-02-19T19:04:41.4809316Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 119.6 MB/s  0:00:00
+post_art	Install dependencies	2026-02-19T19:04:41.4890810Z Downloading cffi-2.0.0-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (216 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.4998442Z Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.5104580Z Downloading pyasn1-0.6.2-py3-none-any.whl (83 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.5209239Z Downloading google_api_python_client-2.190.0-py3-none-any.whl (14.7 MB)
+post_art	Install dependencies	2026-02-19T19:04:41.6053970Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14.7/14.7 MB 176.8 MB/s  0:00:00
+post_art	Install dependencies	2026-02-19T19:04:41.6135425Z Downloading google_auth_httplib2-0.3.0-py3-none-any.whl (9.5 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.6234620Z Downloading httplib2-0.31.2-py3-none-any.whl (91 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.6379658Z Downloading pyparsing-3.3.2-py3-none-any.whl (122 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.6541183Z Downloading uritemplate-4.2.0-py3-none-any.whl (11 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.6642157Z Downloading pycparser-2.23-py3-none-any.whl (118 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.6751747Z Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.6874629Z Downloading pydantic_core-2.41.5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+post_art	Install dependencies	2026-02-19T19:04:41.7013882Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 165.5 MB/s  0:00:00
+post_art	Install dependencies	2026-02-19T19:04:41.7095383Z Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.7206467Z Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.7310144Z Downloading tqdm-4.67.3-py3-none-any.whl (78 kB)
+post_art	Install dependencies	2026-02-19T19:04:41.7962868Z Building wheels for collected packages: sgmllib3k
+post_art	Install dependencies	2026-02-19T19:04:41.7972695Z   Building wheel for sgmllib3k (pyproject.toml): started
+post_art	Install dependencies	2026-02-19T19:04:42.0120794Z   Building wheel for sgmllib3k (pyproject.toml): finished with status 'done'
+post_art	Install dependencies	2026-02-19T19:04:42.0129516Z   Created wheel for sgmllib3k: filename=sgmllib3k-1.0.0-py3-none-any.whl size=6091 sha256=bfaa5c26a2ea8538293f8f42b3d053633ec064c8436b719211dba17731e3eb2d
+post_art	Install dependencies	2026-02-19T19:04:42.0131662Z   Stored in directory: /home/runner/.cache/pip/wheels/65/7a/a7/78c287f64e401255dff4c13fdbc672fed5efbfd21c530114e1
+post_art	Install dependencies	2026-02-19T19:04:42.0153538Z Successfully built sgmllib3k
+post_art	Install dependencies	2026-02-19T19:04:42.0935958Z Installing collected packages: sgmllib3k, urllib3, uritemplate, typing-extensions, tqdm, pyparsing, pycparser, pyasn1, protobuf, Pillow, idna, feedparser, charset_normalizer, certifi, annotated-types, typing-inspection, requests, pydantic-core, pyasn1-modules, proto-plus, httplib2, grpcio, googleapis-common-protos, cffi, pyTelegramBotAPI, pydantic, grpcio-status, cryptography, google-auth, google-auth-httplib2, google-api-core, google-api-python-client, google-ai-generativelanguage, google-generativeai
+post_art	Install dependencies	2026-02-19T19:04:45.5115812Z 
+post_art	Install dependencies	2026-02-19T19:04:45.5178951Z Successfully installed Pillow-11.3.0 annotated-types-0.7.0 certifi-2026.1.4 cffi-2.0.0 charset_normalizer-3.4.4 cryptography-46.0.5 feedparser-6.0.12 google-ai-generativelanguage-0.6.15 google-api-core-2.30.0 google-api-python-client-2.190.0 google-auth-2.49.0.dev0 google-auth-httplib2-0.3.0 google-generativeai-0.8.6 googleapis-common-protos-1.72.0 grpcio-1.78.0 grpcio-status-1.71.2 httplib2-0.31.2 idna-3.11 proto-plus-1.27.1 protobuf-5.29.6 pyTelegramBotAPI-4.31.0 pyasn1-0.6.2 pyasn1-modules-0.4.2 pycparser-2.23 pydantic-2.12.5 pydantic-core-2.41.5 pyparsing-3.3.2 requests-2.32.5 sgmllib3k-1.0.0 tqdm-4.67.3 typing-extensions-4.15.0 typing-inspection-0.4.2 uritemplate-4.2.0 urllib3-2.6.3
+post_art	List files	﻿2026-02-19T19:04:46.1223307Z ##[group]Run ls -la
+post_art	List files	2026-02-19T19:04:46.1223595Z [36;1mls -la[0m
+post_art	List files	2026-02-19T19:04:46.1275224Z shell: /usr/bin/bash -e {0}
+post_art	List files	2026-02-19T19:04:46.1275481Z env:
+post_art	List files	2026-02-19T19:04:46.1275754Z   pythonLocation: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	List files	2026-02-19T19:04:46.1276225Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib/pkgconfig
+post_art	List files	2026-02-19T19:04:46.1276686Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	List files	2026-02-19T19:04:46.1277105Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	List files	2026-02-19T19:04:46.1277504Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	List files	2026-02-19T19:04:46.1277906Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib
+post_art	List files	2026-02-19T19:04:46.1278244Z ##[endgroup]
+post_art	List files	2026-02-19T19:04:46.1366637Z total 216
+post_art	List files	2026-02-19T19:04:46.1367091Z drwxr-xr-x 4 runner runner  4096 Feb 19 19:04 .
+post_art	List files	2026-02-19T19:04:46.1367677Z drwxr-xr-x 3 runner runner  4096 Feb 19 19:04 ..
+post_art	List files	2026-02-19T19:04:46.1368126Z drwxr-xr-x 7 runner runner  4096 Feb 19 19:04 .git
+post_art	List files	2026-02-19T19:04:46.1368555Z drwxr-xr-x 3 runner runner  4096 Feb 19 19:04 .github
+post_art	List files	2026-02-19T19:04:46.1368975Z -rw-r--r-- 1 runner runner 38980 Feb 19 19:04 Roadmap_RUS.docx
+post_art	List files	2026-02-19T19:04:46.1369446Z -rw-r--r-- 1 runner runner 48420 Feb 19 19:04 current_debug.txt
+post_art	List files	2026-02-19T19:04:46.1370004Z -rw-r--r-- 1 runner runner   780 Feb 19 19:04 debug_models.py
+post_art	List files	2026-02-19T19:04:46.1371157Z -rw-r--r-- 1 runner runner 45159 Feb 19 19:04 full_log.txt
+post_art	List files	2026-02-19T19:04:46.1371814Z -rw-r--r-- 1 runner runner  1636 Feb 19 19:04 gen_docx.py
+post_art	List files	2026-02-19T19:04:46.1372446Z -rw-r--r-- 1 runner runner  2210 Feb 19 19:04 gen_pdf.py
+post_art	List files	2026-02-19T19:04:46.1372963Z -rw-r--r-- 1 runner runner 18217 Feb 19 19:04 last_test.png
+post_art	List files	2026-02-19T19:04:46.1373374Z -rw-r--r-- 1 runner runner 19207 Feb 19 19:04 main.py
+post_art	List files	2026-02-19T19:04:46.1373792Z -rw-r--r-- 1 runner runner    64 Feb 19 19:04 requirements.txt
+post_art	List files	2026-02-19T19:04:46.1374227Z -rw-r--r-- 1 runner runner     0 Feb 19 19:04 target_log.txt
+post_art	List files	2026-02-19T19:04:46.1374647Z -rw-r--r-- 1 runner runner  1206 Feb 19 19:04 test_keys.py
+post_art	List files	2026-02-19T19:04:46.1375076Z -rw-r--r-- 1 runner runner  1873 Feb 19 19:04 test_text_gens.py
+post_art	Run Art Bot	﻿2026-02-19T19:04:46.1408650Z ##[group]Run python3 main.py
+post_art	Run Art Bot	2026-02-19T19:04:46.1408966Z [36;1mpython3 main.py[0m
+post_art	Run Art Bot	2026-02-19T19:04:46.1455324Z shell: /usr/bin/bash -e {0}
+post_art	Run Art Bot	2026-02-19T19:04:46.1455586Z env:
+post_art	Run Art Bot	2026-02-19T19:04:46.1455855Z   pythonLocation: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T19:04:46.1456311Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib/pkgconfig
+post_art	Run Art Bot	2026-02-19T19:04:46.1456772Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T19:04:46.1457164Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T19:04:46.1457541Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.9.25/x64
+post_art	Run Art Bot	2026-02-19T19:04:46.1457922Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.9.25/x64/lib
+post_art	Run Art Bot	2026-02-19T19:04:46.1458542Z   BOT_TOKEN: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1458951Z   CHANNEL_ID: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1459227Z   GOOGLE_KEY: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1459574Z   SILICONFLOW_KEY: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1459859Z   RUNWARE_KEY: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1460092Z   KIE_KEY: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1460669Z   HF_KEY: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1460911Z   CLOUDFLARE_ID: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1461242Z   CLOUDFLARE_TOKEN: ***
+post_art	Run Art Bot	2026-02-19T19:04:46.1461476Z ##[endgroup]
+post_art	Run Art Bot	2026-02-19T19:05:05.6554909Z Traceback (most recent call last):
+post_art	Run Art Bot	2026-02-19T19:05:05.6555712Z 🚀 BOOTING FRIE-ND-LEE ART BOT...
+post_art	Run Art Bot	2026-02-19T19:05:05.6570768Z   File "/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot/main.py", line 379, in run_final
+post_art	Run Art Bot	2026-02-19T19:05:05.6571988Z 🛠️ DEBUG: sys.version: 3.9.25 (main, Nov  3 2025, 15:16:36) 
+post_art	Run Art Bot	2026-02-19T19:05:05.6572601Z     img = Image.open(image_data)
+post_art	Run Art Bot	2026-02-19T19:05:05.6573443Z   File "/opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/PIL/Image.py", line 3580, in open
+post_art	Run Art Bot	2026-02-19T19:05:05.6574378Z     raise UnidentifiedImageError(msg)
+post_art	Run Art Bot	2026-02-19T19:05:05.6575171Z PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x7f67d045f220>
+post_art	Run Art Bot	2026-02-19T19:05:05.6575880Z 
+post_art	Run Art Bot	2026-02-19T19:05:05.6576185Z During handling of the above exception, another exception occurred:
+post_art	Run Art Bot	2026-02-19T19:05:05.6576637Z 
+post_art	Run Art Bot	2026-02-19T19:05:05.6576791Z Traceback (most recent call last):
+post_art	Run Art Bot	2026-02-19T19:05:05.6577583Z   File "/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot/main.py", line 403, in <module>
+post_art	Run Art Bot	2026-02-19T19:05:05.6578352Z     run_final()
+post_art	Run Art Bot	2026-02-19T19:05:05.6579049Z   File "/home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot/main.py", line 386, in run_final
+post_art	Run Art Bot	2026-02-19T19:05:05.6580024Z     if not image_url: raise Exception("Failure: Invalid image data.")
+post_art	Run Art Bot	2026-02-19T19:05:05.6580832Z Exception: Failure: Invalid image data.
+post_art	Run Art Bot	2026-02-19T19:05:05.6581248Z [GCC 13.3.0]
+post_art	Run Art Bot	2026-02-19T19:05:05.6581664Z 🛠️ DEBUG: sys.argv: ['main.py']
+post_art	Run Art Bot	2026-02-19T19:05:05.6582136Z 🛠️ DEBUG: TOKEN prefix: 85328...
+post_art	Run Art Bot	2026-02-19T19:05:05.6582888Z 🛠️ DEBUG: CHANNEL_ID: '***' (Type: <class 'str'>)
+post_art	Run Art Bot	2026-02-19T19:05:05.6583456Z 🤖 Бот авторизован: @Avatar2026_bot
+post_art	Run Art Bot	2026-02-19T19:05:05.6584166Z --- FrieNDLee_FTP BOT (v2.0) 🚀 ---
+post_art	Run Art Bot	2026-02-19T19:05:05.6585565Z 🎲 Сгенерирована тема (God Mode V3.0): Hyper-realistic Photo and V-Ray style of Mushroom Kingdom dissolving into data, with Midnight Rain Reflections, masterpiece, 8k, detailed
+post_art	Run Art Bot	2026-02-19T19:05:05.6586890Z 🧠 Kie.ai (DeepSeek) пишет текст...
+post_art	Run Art Bot	2026-02-19T19:05:05.6587789Z Kie.ai Error: {"timestamp":1771527886756,"status":404,"error":"Not Found","message":"No message available","path":"/v1/chat/completions"}
+post_art	Run Art Bot	2026-02-19T19:05:05.6588797Z ⚠️ Kie.ai молчит. Пробую Gemini...
+post_art	Run Art Bot	2026-02-19T19:05:05.6589259Z 📝 Gemini пишет текст...
+post_art	Run Art Bot	2026-02-19T19:05:05.6589727Z ⚠️ Gemini молчит. Пробую Pollinations AI...
+post_art	Run Art Bot	2026-02-19T19:05:05.6590539Z 🧠 Pollinations AI (Backup Brain) пишет текст...
+post_art	Run Art Bot	2026-02-19T19:05:05.6591080Z 🎨 SiliconFlow...
+post_art	Run Art Bot	2026-02-19T19:05:05.6591437Z ⚡ Runware...
+post_art	Run Art Bot	2026-02-19T19:05:05.6591769Z 🤗 HF...
+post_art	Run Art Bot	2026-02-19T19:05:05.6592152Z 🔄 Pollinations Download...
+post_art	Run Art Bot	2026-02-19T19:05:05.6592570Z 📊 Скачано байт: 2906
+post_art	Run Art Bot	2026-02-19T19:05:05.6593296Z ❌ Картинка коррумпирована или невалидна: cannot identify image file <_io.BytesIO object at 0x7f67d045f220>
+post_art	Run Art Bot	2026-02-19T19:05:05.6841509Z ##[error]Process completed with exit code 1.
+post_art	Post Checkout code	﻿2026-02-19T19:05:05.6939001Z Post job cleanup.
+post_art	Post Checkout code	2026-02-19T19:05:05.7694963Z [command]/usr/bin/git version
+post_art	Post Checkout code	2026-02-19T19:05:05.7732200Z git version 2.53.0
+post_art	Post Checkout code	2026-02-19T19:05:05.7792041Z Temporarily overriding HOME='/home/runner/work/_temp/cbbce815-3cd3-4246-b9a5-edfef7f3306d' before making global git config changes
+post_art	Post Checkout code	2026-02-19T19:05:05.7793376Z Adding repository directory to the temporary git global config as a safe directory
+post_art	Post Checkout code	2026-02-19T19:05:05.7794744Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/friendlee-ai-art-bot/friendlee-ai-art-bot
+post_art	Post Checkout code	2026-02-19T19:05:05.7825468Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+post_art	Post Checkout code	2026-02-19T19:05:05.7858105Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+post_art	Post Checkout code	2026-02-19T19:05:05.8112117Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+post_art	Post Checkout code	2026-02-19T19:05:05.8135442Z http.https://github.com/.extraheader
+post_art	Post Checkout code	2026-02-19T19:05:05.8148395Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+post_art	Post Checkout code	2026-02-19T19:05:05.8180607Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+post_art	Complete job	﻿2026-02-19T19:05:05.8539760Z Cleaning up orphan processes
