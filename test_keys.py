@@ -1,11 +1,11 @@
 import requests
 
-GOOGLE_KEY = "AIzaSyAnEcaWjifGqcpxudKWxfpg8rYxXttNq6I"
-SILICONFLOW_KEY = "sk-ddybopolslpzhuysldcagahhdyrgtphilcdvnikgzpmsgzlw"
+GOOGLE_KEY = "AIzaSyDay7jyyQIJSBOoAJnTvpAFJ6IzfM0G58U"
+SILICONFLOW_KEY = "sk-tagguskjmvgkvbhwhhiqtxybahzllhmugrnivjymenfcafgj"
 
 def test_gemini():
     print("Testing Gemini...")
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GOOGLE_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_KEY}"
     payload = {"contents": [{"parts": [{"text": "Say test"}]}]}
     try:
         r = requests.post(url, json=payload, timeout=20)

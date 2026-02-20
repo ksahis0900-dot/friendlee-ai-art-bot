@@ -8,6 +8,7 @@ import urllib.parse
 import base64
 import json
 import time # Added for sleep
+import io
 from PIL import Image
 
 # НОВЫЙ КЛЮЧ
@@ -43,7 +44,7 @@ def generate_text(theme):
     if not GOOGLE_KEY:
         return None
     print("📝 Gemini пишет текст...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GOOGLE_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_KEY}"
     
     if "JSON" in theme:
         final_prompt = theme
@@ -357,164 +358,121 @@ def run_final():
     if not target.startswith('@') and not target.startswith('-'):
         if not target.isdigit(): target = f"@{target}"
 
-    # --- 3. ШАГ: РИСУЕМ ---
+    # --- 3. ШАГ: РИСУЕМ (ROBUST LOOP V2) ---
     image_url, image_data = None, None
-    
-    # SiliconFlow
-    if SILICONFLOW_KEY:
-        print("🎨 SiliconFlow Check...")
-        try:
-            sf_headers = {"Authorization": f"Bearer {SILICONFLOW_KEY}", "Content-Type": "application/json"}
-            r = requests.post("https://api.siliconflow.cn/v1/images/generations", 
-                             json={"model": "black-forest-labs/FLUX.1-schnell", "prompt": t, "image_size": "1024x1024", "batch_size": 1},
-                             headers=sf_headers, timeout=45)
-            if r.status_code == 200: 
-                image_url = r.json()['images'][0]['url']
-                print("✅ SiliconFlow OK!")
-            elif r.status_code == 401:
-                print("❌ SILICONFLOW_KEY Invalid (401)")
-            else:
-                print(f"⚠️ SiliconFlow Status {r.status_code}")
-        except: pass
+    provider_name = "Unknown"
 
-    # Runware
-    if not image_url and RUNWARE_KEY:
-        print("⚡ Runware Check...")
-        try:
-            r = requests.post("https://api.runware.ai/v1", 
-                             json=[{"action": "authentication", "api_key": RUNWARE_KEY},
-                                   {"action": "image_inference", "modelId": "runware:100@1", "positivePrompt": t, "width": 1024, "height": 1024}], 
-                             timeout=45)
-            if r.status_code == 200:
-                data_list = r.json().get('data', [])
-                for d in data_list:
-                    if d.get('imageURL'): 
-                        image_url = d['imageURL']
-                        print("✅ Runware OK!")
-                        break
-            else:
-                print(f"⚠️ Runware Status {r.status_code}")
-        except: pass
+    # СПИСОК МОДЕЛЕЙ (В порядке приоритета: Ключи -> Бесплатные Про -> Бесплатные Обычные -> Резерв)
+    IMAGE_MODELS = [
+        # --- TIER 1: PAID / KEYS (High Stability) ---
+        {"name": "SiliconFlow (Flux Schnell)", "provider": "siliconflow", "model": "black-forest-labs/FLUX.1-schnell", "key": SILICONFLOW_KEY},
+        {"name": "Runware (100@1)", "provider": "runware", "model": "runware:100@1", "key": RUNWARE_KEY},
+        {"name": "HuggingFace (Flux Schnell)", "provider": "huggingface", "model": "black-forest-labs/FLUX.1-schnell", "key": HF_KEY},
+        {"name": "Cloudflare (Flux Schnell)", "provider": "cloudflare", "model": "@cf/black-forest-labs/flux-1-schnell", "key": CLOUDFLARE_ID},
+        
+        # --- TIER 2: FREE API (Airforce - Often Good) ---
+        {"name": "Airforce (Flux 1.1 Pro)", "provider": "airforce", "model": "flux-1.1-pro", "key": True},
+        {"name": "Airforce (Flux 1 Dev)", "provider": "airforce", "model": "flux-1-dev", "key": True},
+        {"name": "Airforce (Flux Schnell)", "provider": "airforce", "model": "flux-1-schnell", "key": True},
+        {"name": "Airforce (Any Dark)", "provider": "airforce", "model": "any-dark", "key": True},
+        
+        # --- TIER 3: POLLINATIONS (Always Free, Good Quality) ---
+        {"name": "Pollinations (Flux Realism)", "provider": "pollinations", "model": "flux-realism", "key": True},
+        {"name": "Pollinations (Midjourney)", "provider": "pollinations", "model": "midjourney", "key": True},
+        {"name": "Pollinations (Flux)", "provider": "pollinations", "model": "flux", "key": True},
+        {"name": "Pollinations (Turbo)", "provider": "pollinations", "model": "turbo", "key": True},
+        
+        # --- TIER 4: FALLBACKS ---
+        {"name": "Gemini Image (Google)", "provider": "gemini", "model": "gemini-2.5-flash-image", "key": GOOGLE_KEY},
+        {"name": "AI Horde (SDXL Beta)", "provider": "horde", "model": "SDXL_beta_examples", "key": True},
+        {"name": "Picsum (Stock Photo)", "provider": "picsum", "model": "photo", "key": True},
+    ]
 
-    # Hugging Face
-    if not image_url and HF_KEY:
-        print("🤗 HF Check (Router)...")
-        try:
-            hf_url = "https://router.huggingface.co/black-forest-labs/FLUX.1-schnell"
-            r = requests.post(hf_url, headers={"Authorization": f"Bearer {HF_KEY}"}, json={"inputs": t}, timeout=60)
-            if r.status_code == 200: 
-                image_data = io.BytesIO(r.content)
-                print("✅ HF OK!")
-            else:
-                print(f"⚠️ HF Status {r.status_code}")
-        except: pass
+    print(f"🎨 Начинаем генерацию. Доступно провайдеров: {len(IMAGE_MODELS)}")
 
-    # Cloudflare
-    if not image_url and not image_data and CLOUDFLARE_ID and CLOUDFLARE_TOKEN:
-        print("☁️ Cloudflare Check...")
+    for model_cfg in IMAGE_MODELS:
+        if not model_cfg['key']: continue # Пропуск если нет ключа
+            
+        p_name = model_cfg['name']
+        p_type = model_cfg['provider']
+        
+        # Simple logging to allow user to see progress
+        if "Picsum" not in p_name: print(f"👉 Пробуем: {p_name}...")
+        
         try:
-            cf_url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ID}/ai/run/@cf/black-forest-labs/flux-1-schnell"
-            r = requests.post(cf_url, headers={"Authorization": f"Bearer {CLOUDFLARE_TOKEN}"}, json={"prompt": t}, timeout=60)
-            if r.status_code == 200:
-                image_data = io.BytesIO(r.content)
-                print("✅ Cloudflare OK!")
-            else:
-                print(f"⚠️ Cloudflare Status {r.status_code}")
-        except: pass
-
-    # === БЕСПЛАТНЫЕ / РЕЗЕРВНЫЕ ДВИЖКИ (БЕЗ КЛЮЧЕЙ ИЛИ С ОБЩИМИ) ===
-
-    # 5. Airforce API (Flux - Free Tier)
-    if not image_url and not image_data:
-        print("🌪️ Airforce (Flux) пробуем...")
-        try:
-            # Airforce часто меняет модели, пробуем несколько популярных Flux
-            af_models = ["flux-2-klein-4b", "flux-2-dev", "flux-1-schnell"]
-            for model in af_models:
-                print(f"   Пробуем модель: {model}")
-                r = requests.post("https://api.airforce/v1/images/generations", 
-                                 json={"model": model, "prompt": t, "size": "1024x1024"},
-                                 timeout=40)
+            # --- PROVIDER LOGIC ---
+            if p_type == "siliconflow":
+                r = requests.post("https://api.siliconflow.cn/v1/images/generations", 
+                                 json={"model": model_cfg['model'], "prompt": t, "image_size": "1024x1024", "batch_size": 1},
+                                 headers={"Authorization": f"Bearer {SILICONFLOW_KEY}", "Content-Type": "application/json"}, timeout=45)
+                if r.status_code == 200: 
+                    image_url = r.json()['images'][0]['url']
+            
+            elif p_type == "runware":
+                r = requests.post("https://api.runware.ai/v1", 
+                                 json=[{"action": "authentication", "api_key": RUNWARE_KEY},
+                                       {"action": "image_inference", "modelId": model_cfg['model'], "positivePrompt": t, "width": 1024, "height": 1024}], 
+                                 timeout=45)
                 if r.status_code == 200:
-                    data = r.json()
-                    image_url = data['data'][0]['url']
-                    print(f"✅ Airforce OK! ({model})")
-                    break
-                elif r.status_code == 429:
-                    print("⚠️ Airforce Rate Limit (429) - пропускаем")
-                    break
-        except Exception as e:
-            print(f"⚠️ Airforce Error: {e}")
+                    d = r.json().get('data', [])
+                    if d and d[0].get('imageURL'): image_url = d[0]['imageURL']
 
-    # 6. Pollinations.ai (URL Mode - работает без ключа!)
-    if not image_url and not image_data:
-        print("🌺 Pollinations (URL Mode) пробуем...")
-        try:
-            # Используем прямой URL-генератор, он бесплатный
-            encoded_prompt = urllib.parse.quote(t)
-            seed = random.randint(1, 99999)
-            poll_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=True&model=flux&seed={seed}"
-            r = requests.get(poll_url, timeout=60)
-            if r.status_code == 200 and len(r.content) > 5000:
-                image_data = io.BytesIO(r.content)
-                print("✅ Pollinations URL Mode OK!")
-            else:
-                print(f"⚠️ Pollinations Status: {r.status_code}")
-        except Exception as e:
-            print(f"⚠️ Pollinations Error: {e}")
+            elif p_type == "huggingface":
+                 headers = {"Authorization": f"Bearer {HF_KEY}"}
+                 r = requests.post(f"https://router.huggingface.co/{model_cfg['model']}", headers=headers, json={"inputs": t}, timeout=60)
+                 if r.status_code == 200: image_data = io.BytesIO(r.content)
 
-    # 7. Gemini Image (Если есть ключ)
-    if not image_url and not image_data and GOOGLE_KEY:
-        print("🌟 Gemini Image (Google)...")
-        image_data = generate_image_gemini(t)
+            elif p_type == "cloudflare":
+                cf_url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ID}/ai/run/{model_cfg['model']}"
+                r = requests.post(cf_url, headers={"Authorization": f"Bearer {CLOUDFLARE_TOKEN}"}, json={"prompt": t}, timeout=60)
+                if r.status_code == 200: image_data = io.BytesIO(r.content)
 
-    # 8. AI Horde (Анонимный режим, 512x512)
-    if not image_url and not image_data:
-        print("👾 AI Horde (Anonymous)...")
-        try:
-            horde_url = "https://stablehorde.net/api/v2/generate/async"
-            headers = {"apikey": "0000000000", "Content-Type": "application/json", "Client-Agent": "FriendLeeBot:2.0:friendlee"}
-            # Для анонимов ограничение 512x512 и меньше шагов
-            payload = {
-                "prompt": t,
-                "params": {"sampler_name": "k_euler", "cfg_scale": 7, "width": 512, "height": 512, "steps": 20},
-                "nsfw": False,
-                "censor_nsfw": True,
-                "models": ["ICBINP - I Can't Believe It's Not Photography"]
-            }
-            r = requests.post(horde_url, json=payload, headers=headers, timeout=30)
-            if r.status_code == 202:
-                req_id = r.json()['id']
-                # Ждем результат (макс 60 сек)
-                for _ in range(12):
-                    time.sleep(5)
-                    check = requests.get(f"https://stablehorde.net/api/v2/generate/status/{req_id}", headers=headers)
-                    if check.json()['done']:
-                        img_resp = requests.get(f"https://stablehorde.net/api/v2/generate/status/{req_id}", headers=headers).json()
-                        img_url = img_resp['generations'][0]['img']
-                        image_url = img_url # Horde дает URL
-                        print("✅ AI Horde OK!")
-                        break
-            else:
-                print(f"⚠️ Horde Status: {r.status_code} {r.text[:100]}")
-        except Exception as e:
-            print(f"⚠️ AI Horde Error: {e}")
+            elif p_type == "airforce":
+                # Using standard OpenAI-like endpoint for Airforce
+                url = "https://api.airforce/v1/images/generations"
+                r = requests.post(url, json={"model": model_cfg['model'], "prompt": t, "size": "1024x1024"}, timeout=55)
+                if r.status_code == 200: image_url = r.json()['data'][0]['url']
+                elif r.status_code == 429: print("   ⚠️ Rate Limit (429)")
 
-    # === АБСОЛЮТНЫЙ РЕЗЕРВ: Picsum (красивые фото, 100% бесплатно, без ключей) ===
-    if not image_url and not image_data:
-        print("🖼️ РЕЗЕРВ: Picsum Photos (бесплатное фото)...")
-        try:
-            # Берём случайное красивое фото с Picsum
-            seed = random.randint(1, 1000)
-            picsum_url = f"https://picsum.photos/seed/{seed}/1024/1024"
-            r = requests.get(picsum_url, timeout=30, allow_redirects=True)
-            if r.status_code == 200 and len(r.content) > 10000:
-                image_data = io.BytesIO(r.content)
-                print(f"✅ Picsum OK! ({len(r.content)} bytes)")
-            else:
-                print(f"⚠️ Picsum Status: {r.status_code}")
+            elif p_type == "pollinations":
+                encoded = urllib.parse.quote(t)
+                seed = random.randint(1, 99999)
+                url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&model={model_cfg['model']}&nologo=true&seed={seed}"
+                r = requests.get(url, timeout=60)
+                if r.status_code == 200 and len(r.content) > 5000: image_data = io.BytesIO(r.content)
+
+            elif p_type == "gemini":
+                image_data = generate_image_gemini(t)
+
+            elif p_type == "horde":
+                 # Fallback to simple Horde sync-like check (or fire-and-forget logic if needed, but here blocking is safer for script)
+                 # Re-implementing simplified Horde logic
+                 horde_url = "https://stablehorde.net/api/v2/generate/async"
+                 h_headers = {"apikey": "0000000000", "Client-Agent": "FriendLeeBot:2.0"}
+                 payload = {"prompt": t, "params": {"width": 512, "height": 512}, "models": ["ICBINP - I Can't Believe It's Not Photography"]}
+                 r = requests.post(horde_url, json=payload, headers=h_headers, timeout=30)
+                 if r.status_code == 202:
+                     req_id = r.json()['id']
+                     for _ in range(8):
+                         time.sleep(5)
+                         stat = requests.get(f"https://stablehorde.net/api/v2/generate/status/{req_id}", headers=h_headers).json()
+                         if stat['done']:
+                             image_url = stat['generations'][0]['img']
+                             break
+
+            elif p_type == "picsum":
+                r = requests.get(f"https://picsum.photos/seed/{random.randint(1,1000)}/1024/1024")
+                if r.status_code == 200: image_data = io.BytesIO(r.content)
+
+            # --- SUCCESS CHECK ---
+            if image_url or image_data:
+                provider_name = p_name
+                print(f"✅ УСПЕХ! Генерация выполнена через: {p_name}")
+                break
+            
         except Exception as e:
-            print(f"⚠️ Picsum Exception: {e}")
+            # print(f"⚠️ {p_name} Error: {e}") # Uncomment for deeper debug
+            continue
 
     # --- 4. ШАГ: ОТПРАВКА ---
     if not image_url and not image_data: raise Exception("CRITICAL: All Art Engines failed.")
