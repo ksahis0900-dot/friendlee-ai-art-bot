@@ -480,7 +480,7 @@ def run_final():
 
             elif p_type == "huggingface":
                  headers = {"Authorization": f"Bearer {HF_KEY}"}
-                 r = requests.post(f"https://router.huggingface.co/models/{model_cfg['model']}", headers=headers, json={"inputs": t}, timeout=60)
+                 r = requests.post(f"https://router.huggingface.co/hf-inference/models/{model_cfg['model']}", headers=headers, json={"inputs": t}, timeout=60)
                  if r.status_code == 200: image_data = io.BytesIO(r.content)
                  else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
