@@ -458,6 +458,7 @@ def run_final():
                                   timeout=60)
                 if r.status_code == 200:
                     image_url = r.json()['data'][0]['url']
+                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
             elif p_type == "siliconflow":
                 r = requests.post("https://api.siliconflow.cn/v1/images/generations", 
@@ -465,6 +466,7 @@ def run_final():
                                  headers={"Authorization": f"Bearer {SILICONFLOW_KEY}", "Content-Type": "application/json"}, timeout=45)
                 if r.status_code == 200: 
                     image_url = r.json()['images'][0]['url']
+                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
             
             elif p_type == "runware":
                 r = requests.post("https://api.runware.ai/v1", 
@@ -474,16 +476,19 @@ def run_final():
                 if r.status_code == 200:
                     d = r.json().get('data', [])
                     if d and d[0].get('imageURL'): image_url = d[0]['imageURL']
+                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
             elif p_type == "huggingface":
                  headers = {"Authorization": f"Bearer {HF_KEY}"}
-                 r = requests.post(f"https://router.huggingface.co/{model_cfg['model']}", headers=headers, json={"inputs": t}, timeout=60)
+                 r = requests.post(f"https://router.huggingface.co/models/{model_cfg['model']}", headers=headers, json={"inputs": t}, timeout=60)
                  if r.status_code == 200: image_data = io.BytesIO(r.content)
+                 else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
             elif p_type == "cloudflare":
                 cf_url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ID}/ai/run/{model_cfg['model']}"
                 r = requests.post(cf_url, headers={"Authorization": f"Bearer {CLOUDFLARE_TOKEN}"}, json={"prompt": t}, timeout=60)
                 if r.status_code == 200: image_data = io.BytesIO(r.content)
+                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
             elif p_type == "airforce":
                 # Using standard OpenAI-like endpoint for Airforce
@@ -491,6 +496,7 @@ def run_final():
                 r = requests.post(url, json={"model": model_cfg['model'], "prompt": t, "size": "1024x1024"}, timeout=55)
                 if r.status_code == 200: image_url = r.json()['data'][0]['url']
                 elif r.status_code == 429: print("   ⚠️ Rate Limit (429)")
+                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
             elif p_type == "pollinations":
                 encoded = urllib.parse.quote(t)
@@ -529,7 +535,10 @@ def run_final():
                 break
             
         except Exception as e:
-            # print(f"⚠️ {p_name} Error: {e}") # Uncomment for deeper debug
+            print(f"⚠️ {p_name} Error: {e}")
+            if 'r' in locals():
+                try: print(f"Response: {r.text[:300]}")
+                except: pass
             continue
 
     # --- 4. ШАГ: ОТПРАВКА ---
