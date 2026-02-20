@@ -20,6 +20,8 @@ HF_KEY = os.environ.get('HF_KEY')
 KIE_KEY = os.environ.get('KIE_KEY')
 CLOUDFLARE_ID = os.environ.get('CLOUDFLARE_ID')
 CLOUDFLARE_TOKEN = os.environ.get('CLOUDFLARE_TOKEN')
+GROQ_KEY = os.environ.get('GROQ_KEY')
+OPENROUTER_KEY = os.environ.get('OPENROUTER_KEY')
 
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL_ID = os.environ.get('CHANNEL_ID')
@@ -62,6 +64,42 @@ def generate_text(theme):
         return r.json()['candidates'][0]['content']['parts'][0]['text']
     except:
         return None
+
+def generate_text_groq(theme):
+    if not GROQ_KEY: return None
+    print("🧠 Groq API пишет текст (Llama 3)...")
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
+    prompt = (
+        f"Ты креативный SMM-менеджер арт-канала. Напиши пост про '{theme}'. "
+        f"ЯЗЫК: Русский (Заголовок, Концепт, Описание) и Английский (Prompt). "
+        f"СТРУКТУРА ОТВЕТА (строго JSON): "
+        f'{{"TITLE": "...", "CONCEPT": "...", "DESCRIPTION": "...", "TAGS": "..."}} '
+        f"TITLE: Цепляющий заголовок с эмодзи. "
+        f"CONCEPT: Смешная или глубокая предыстория. "
+        f"TAGS: 3-5 тегов через #."
+    )
+    payload = {"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "temperature": 0.8}
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=30)
+        if r.status_code == 200: return r.json()['choices'][0]['message']['content']
+    except Exception as e:
+        print(f"Groq Error: {e}")
+    return None
+
+def generate_text_openrouter(theme):
+    if not OPENROUTER_KEY: return None
+    print("🧠 OpenRouter пишет текст...")
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"}
+    prompt = f"Write a JSON post in Russian about {theme}. {{\"TITLE\":\"...\", \"CONCEPT\":\"...\", \"TAGS\":\"...\"}}"
+    payload = {"model": "meta-llama/llama-3.2-3b-instruct:free", "messages": [{"role": "user", "content": prompt}], "temperature": 0.8}
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=30)
+        if r.status_code == 200: return r.json()['choices'][0]['message']['content']
+    except Exception as e:
+        print(f"OpenRouter Error: {e}")
+    return None
 
 def generate_text_pollinations(theme):
     print("🧠 Pollinations AI (Backup Brain) пишет текст...")
@@ -311,16 +349,26 @@ def run_final():
         # --- 2. ШАГ: ГЕНЕРИРУЕМ ТЕКСТ (ЗАГОЛОВОК, КОНЦЕПТ, ТЕГИ) ---
     headers_common = {"User-Agent": "Mozilla/5.0"}
     
-    # 1. Текст от Gemini
-    print("📝 Gemini пишет текст...")
-    raw = generate_text(f"Post JSON about {t} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}}")
+    # 1. Текст от Groq
+    print("📝 Генерирую текст под тему...")
+    raw = generate_text_groq(t)
     
-    # 2. Если Gemini молчит -> Kie.ai
+    # 2. Если Groq молчит -> OpenRouter
+    if not raw:
+        print("⚠️ Groq молчит. Пробую OpenRouter...")
+        raw = generate_text_openrouter(t)
+
+    # 3. Если OpenRouter молчит -> Gemini
+    if not raw:
+        print("⚠️ OpenRouter молчит. Пробую Gemini...")
+        raw = generate_text(f"Post JSON about {t} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}}")
+    
+    # 4. Если Gemini молчит -> Kie.ai
     if not raw:
         print("⚠️ Gemini молчит. Пробую Kie.ai...")
         raw = generate_text_kie(t)
         
-    # 3. Если и Kie молчит -> Pollinations
+    # 5. Если и Kie молчит -> Pollinations
     if not raw:
         print("⚠️ Все молчат. Пробую Pollinations AI...")
         raw = generate_text_pollinations(t)
