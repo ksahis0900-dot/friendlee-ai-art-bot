@@ -127,28 +127,23 @@ def generate_text_pollinations(theme):
         return None
 
 def generate_text_kie(theme):
+    if not KIE_KEY: return None
     print("🧠 Kie.ai (DeepSeek) пишет текст...")
-    url = "https://api.kie.ai/v1/chat/completions" # Проверим эндпоинт, обычно совместим с OpenAI
+    # Используем актуальный эндпоинт для чата
+    url = "https://api.kie.ai/v1/chat/completions" 
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
         "Content-Type": "application/json"
     }
     
     prompt = (
-        f"Ты восхищенный зритель в галерее будущего. Напиши пост про арт '{theme}'.\n"
-        f"Требования:\n"
-        f"1. Язык: РУССКИЙ (без ошибок!).\n"
-        f"2. Стиль: Вдохновленный поэт цифровой эпохи. ЭМОЦИОНАЛЬНО! 💖\n"
-        f"3. ОБЪЕМ: Концепт - 20-30 слов.\n"
-        f"4. ЭМОДЗИ: СТРОГО НАЧИНАЙ И ЗАКАНЧИВАЙ КАЖДУЮ ФРАЗУ СМАЙЛОМ (🔥, ✨, 😱, 🌌)!\n"
-        f"5. ФОРМАТ JSON: {{\"TITLE\": \"...\", \"CONCEPT\": \"...\", \"TAGS\": \"...\"}}\n"
-        f"TITLE: Заголовок КАПСОМ.\n"
-        f"CONCEPT: Описание философии арта (только одна секция!).\n"
-        f"TAGS: 5-7 тегов на английском (#Art #Futurism ...)."
+        f"Напиши JSON пост про арт '{theme}'. ЯЗЫК: РУССКИЙ. "
+        f"СТРУКТУРА: {{\"TITLE\": \"...\", \"CONCEPT\": \"...\", \"TAGS\": \"...\"}}. "
+        f"Будь эмоциональным и используй много эмодзи!"
     )
     
     payload = {
-        "model": "deepseek-v3", # Пробуем v3 или chatgpt-4o-latest (зависит от доступа)
+        "model": "deepseek-v3", # Или "chatgpt-4o-latest", "gpt-4o"
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.8
     }
@@ -156,12 +151,18 @@ def generate_text_kie(theme):
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=60)
         if r.status_code == 200:
-            return r.json()['choices'][0]['message']['content']
+            res_json = r.json()
+            # Добавим проверку структуры ответа
+            if 'choices' in res_json and len(res_json['choices']) > 0:
+                return res_json['choices'][0]['message']['content']
+            else:
+                print(f"⚠️ Kie.ai Unexpected JSON: {res_json}")
+                return None
         else:
-             print(f"Kie.ai Error: {r.text}")
-             return None
+            print(f"⚠️ Kie.ai Error {r.status_code}: {r.text}")
+            return None
     except Exception as e:
-        print(f"Kie.ai Exception: {e}")
+        print(f"⚠️ Kie.ai Exception: {e}")
         return None
 
 # --- УДАЛЕНО: Reddit и Новости ИИ больше не используются ---
@@ -351,7 +352,7 @@ def run_final():
         "A cool cat in sunglasses driving a convertible to work on Monday morning",
         "A lazy sloth wearing a 'Monday is My Day' t-shirt with a giant smile", 
         "A group of office penguins having a crazy dance party during break",
-        "A cute small dragon frying eggs and making toast for breakfast", 
+        "A cute small dragon making delicious blueberry pancakes for breakfast", 
         "A heavy bear doing yoga in a field of flowers with a sunrise",
         "A robot dog chasing a holographic bone and wagging its metallic tail", 
         "An astronaut playing golf on the moon with a rainbow trail ball",
@@ -581,24 +582,25 @@ def run_final():
 
     # --- 2. ШАГ: ГЕНЕРИРУЕМ ТЕКСТ ---
     print("📝 Генерирую текст под тему...")
-    raw = generate_text_groq(t_prompt)
+    # 1. Сначала Kie.ai (приоритет - купленный ключ)
+    raw = generate_text_kie(t_prompt)
     
-    # 2. Если Groq молчит -> OpenRouter
+    # 2. Если Kie молчит -> Groq
+    if not raw:
+        print("⚠️ Kie молчит. Пробую Groq...")
+        raw = generate_text_groq(t_prompt)
+
+    # 3. Если Groq молчит -> OpenRouter
     if not raw:
         print("⚠️ Groq молчит. Пробую OpenRouter...")
         raw = generate_text_openrouter(t_prompt)
 
-    # 3. Если OpenRouter молчит -> Gemini
+    # 4. Если OpenRouter молчит -> Gemini
     if not raw:
         print("⚠️ OpenRouter молчит. Пробую Gemini...")
         raw = generate_text(f"Post JSON about {t_prompt} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}}")
-    
-    # 4. Если Gemini молчит -> Kie.ai
-    if not raw:
-        print("⚠️ Gemini молчит. Пробую Kie.ai...")
-        raw = generate_text_kie(t_prompt)
         
-    # 5. Если и Kie молчит -> Pollinations
+    # 5. Если и Gemini молчит -> Pollinations
     if not raw:
         print("⚠️ Все молчат. Пробую Pollinations AI...")
         raw = generate_text_pollinations(t_prompt)
@@ -650,15 +652,20 @@ def run_final():
         video_prompt = f"{t}, high realism, cinematic style, detailed, 4k"
         video_url = generate_video_kie(video_prompt, model="sora-2-text-to-video", duration=10, size="landscape")
         if not video_url:
-            raise Exception("🎬 CRITICAL: Video generation failed and fallback is disabled.")
+            print("⚠️ Видео не удалось сгенерировать. Пробуем фото как запасной вариант.")
+            VIDEO_MODE = False # Отключаем режим видео для этого прогона
     
     image_url, image_data = None, None
     provider_name = "Unknown"
 
     # СПИСОК МОДЕЛЕЙ (В порядке приоритета: Ключи -> Бесплатные Про -> Бесплатные Обычные -> Резерв)
     IMAGE_MODELS = [
-        # --- TIER 1: PAID / KEYS (High Stability) ---
+        # --- TIER 1: KIE.AI (MAIN PRIORITY) ---
         {"name": "Kie.ai (Flux Kontext)", "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
+        {"name": "Kie.ai (Flux Pro)", "provider": "kie_image", "model": "flux-1-pro", "key": KIE_KEY},
+        {"name": "Kie.ai (SDXL)", "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
+
+        # --- TIER 2: OTHER PAID KEYS (Backup) ---
         {"name": "Laozhang (DALL-E 3)", "provider": "laozhang", "model": "dall-e-3", "key": LAOZHANG_KEY},
         {"name": "SiliconFlow (Flux Schnell)", "provider": "siliconflow", "model": "black-forest-labs/FLUX.1-schnell", "key": SILICONFLOW_KEY},
         {"name": "Runware (100@1)", "provider": "runware", "model": "runware:100@1", "key": RUNWARE_KEY},
@@ -697,13 +704,39 @@ def run_final():
         try:
             # --- PROVIDER LOGIC ---
             if p_type == "kie_image":
-                r = requests.post("https://api.kie.ai/v1/images/generations",
-                                  json={"model": model_cfg['model'], "prompt": t, "n": 1, "size": "1024x1024"},
-                                  headers={"Authorization": f"Bearer {model_cfg['key']}", "Content-Type": "application/json"},
-                                  timeout=60)
-                if r.status_code == 200:
-                    image_url = r.json()['data'][0]['url']
-                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
+                # Переключаем на logic создания задачи (аналогично видео), так как старый эндпоинт 404
+                # Или пробуем /api/v1/runway/generate для других моделей
+                try:
+                    payload = {
+                        "model": model_cfg['model'],
+                        "input": {
+                            "prompt": t,
+                            "aspect_ratio": "square",
+                            "size": "1024x1024"
+                        }
+                    }
+                    r = requests.post("https://api.kie.ai/api/v1/jobs/createTask", 
+                                      json=payload, headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=60)
+                    if r.status_code == 200:
+                        res = r.json()
+                        task_id = res.get('taskId') or res.get('id') or (res.get('data') or {}).get('taskId')
+                        if task_id:
+                            # Мини-полинг для картинки (обычно быстрее видео)
+                            for _ in range(15):
+                                time.sleep(10)
+                                pr = requests.get(f"https://api.kie.ai/api/v1/jobs/recordInfo?taskId={task_id}", 
+                                                 headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=30)
+                                if pr.status_code == 200:
+                                    s_data = pr.json().get('data', {})
+                                    res_json_str = s_data.get('resultJson', '')
+                                    if res_json_str:
+                                        res_obj = json.loads(res_json_str)
+                                        urls = res_obj.get('resultUrls', [])
+                                        if urls:
+                                            image_url = urls[0]
+                                            break
+                except Exception as ex:
+                    print(f"⚠️ Kie.ai Image Error: {ex}")
 
             elif p_type == "laozhang":
                 r = requests.post("https://api.laozhang.ai/v1/images/generations",
