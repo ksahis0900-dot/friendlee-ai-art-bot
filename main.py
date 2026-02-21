@@ -47,7 +47,7 @@ def generate_text(theme):
     if not GOOGLE_KEY:
         return None
     print("📝 Gemini пишет текст...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GOOGLE_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GOOGLE_KEY}"
     
     if "JSON" in theme:
         final_prompt = theme
@@ -188,10 +188,12 @@ def generate_image_gemini(prompt):
     if not GOOGLE_KEY:
         return None
     print("🎨 Gemini Image генерирует картинку...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key={GOOGLE_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GOOGLE_KEY}"
     payload = {
         "contents": [{"parts": [{"text": f"Generate a beautiful, high-quality digital art image: {prompt}"}]}],
-        "generationConfig": {"responseModalities": ["IMAGE"]}
+        "generationConfig": {
+            "responseModalities": ["TEXT", "IMAGE"]
+        }
     }
     try:
         r = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=90)
@@ -232,10 +234,6 @@ def run_final():
     # ПРОВЕРКА НА ТЕСТОВЫЙ РЕЖИМ
     TEST_MODE = "--test" in sys.argv
     FORCE_SOURCE = None
-
-    # 1. ШАГ: РЕШАЕМ ОТКУДА БРАТЬ ИДЕЮ
-    # Только Reddit или Внутренний генератор (Новостей нет)
-    # ... (rest of code)
 
 
     # --- 1. ШАГ: РЕШАЕМ ОТКУДА БРАТЬ ИДЕЮ ---
@@ -403,9 +401,16 @@ def run_final():
     caption = f"✨ <b>{esc(title)}</b>\n\n{esc(concept)}\n\n{esc(tags) or '#AIArt'}\n\n{YOUR_SIGNATURE}"
     if len(caption) > 1024: caption = caption[:1010] + "..."
 
-    target = str(CHANNEL_ID)
-    if not target.startswith('@') and not target.startswith('-'):
-        if not target.isdigit(): target = f"@{target}"
+    target = str(CHANNEL_ID).strip()
+    if not (target.startswith('@') or target.startswith('-')):
+        if target.isdigit():
+            # Если это просто число, Telegram требует чтобы ID начинался с -100 для каналов
+            if not target.startswith('100'):
+                target = f"-100{target}"
+            else:
+                target = f"-{target}"
+        else:
+            target = f"@{target}"
 
     # --- 3. ШАГ: РИСУЕМ (ROBUST LOOP V2) ---
     image_url, image_data = None, None
@@ -433,7 +438,7 @@ def run_final():
         {"name": "Pollinations (Turbo)", "provider": "pollinations", "model": "turbo", "key": True},
         
         # --- TIER 4: FALLBACKS ---
-        {"name": "Gemini Image (Google)", "provider": "gemini", "model": "gemini-2.5-flash-image", "key": GOOGLE_KEY},
+        {"name": "Gemini Image (Google)", "provider": "gemini", "model": "gemini-2.0-flash-exp", "key": GOOGLE_KEY},
         {"name": "AI Horde (SDXL Beta)", "provider": "horde", "model": "SDXL_beta_examples", "key": True},
         {"name": "Picsum (Stock Photo)", "provider": "picsum", "model": "photo", "key": True},
     ]
@@ -556,16 +561,23 @@ def run_final():
             image_data = None
             if not image_url: raise Exception("Incomplete Art Data.")
 
-    try:
-        if image_url: 
-            bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
-        else:
-            image_data.seek(0)
-            bot.send_photo(target, image_data, caption=caption, parse_mode='HTML')
-        print("🎉 SUCCESS! Art posted.")
-    except Exception as e:
-        print(f"❌ SENDING FAILED: {e}")
-        raise
+    for attempt in range(3):
+        try:
+            print(f"📤 Attempt {attempt+1}: Sending to {target}...")
+            if image_url: 
+                bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
+            else:
+                image_data.seek(0)
+                bot.send_photo(target, image_data, caption=caption, parse_mode='HTML')
+            print("🎉 SUCCESS! Art posted.")
+            return
+        except Exception as e:
+            print(f"❌ Attempt {attempt+1} failed: {e}")
+            if attempt < 2:
+                time.sleep(10)
+            else:
+                raise
+
 
 if __name__ == "__main__":
     run_final()
