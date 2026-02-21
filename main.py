@@ -327,23 +327,34 @@ def run_final():
     FORCE_SOURCE = None
 
 
-    # --- 1. ШАГ: РЕШАЕМ ОТКУДА БРАТЬ ИДЕЮ ---
-    # ТЕПЕРЬ ТОЛЬКО ВНУТРЕННИЙ ГЕНЕРАТОР (МЕГА-БИБЛИОТЕКА)
-    t = None
-    source = "INTERNAL"
-    
     # ПРОВЕРКА НА АВТО-ВИДЕО (Воскресенье 22:00 МСК = 19:00 UTC)
     from datetime import datetime, timezone, timedelta
     now_utc = datetime.now(timezone.utc)
     msk_delta = timedelta(hours=3)
     now_msk = now_utc + msk_delta
     
+    IS_SUNDAY_VIDEO = False
     # Если воскресенье (6) и время 22:00 (час 22) -> включаем видео
     if now_msk.weekday() == 6 and now_msk.hour == 22:
-        print("🕒 АВТО-РЕЖИМ: Воскресенье 22:00 МСК. Активируем VIDEO_MODE!")
+        print("🕒 АВТО-РЕЖИМ: Воскресенье 22:00 МСК. Активируем позитивное VIDEO_MODE!")
         VIDEO_MODE = True
+        IS_SUNDAY_VIDEO = True
 
     # === МЕГА-БИБЛИОТЕКА КОНЦЕПЦИЙ (РАСШИРЕНА В 2 РАЗА) ===
+    # Добавляем спец-категорию для юмора
+    humor_subjects = [
+        "Funny clumsy robot trying to drink coffee and waking up", 
+        "A cool cat in sunglasses driving a convertible to work on Monday morning",
+        "A lazy sloth wearing a 'Monday is My Day' t-shirt with a giant smile", 
+        "A group of office penguins having a crazy dance party during break",
+        "A cute small dragon frying eggs and making toast for breakfast", 
+        "A heavy bear doing yoga in a field of flowers with a sunrise",
+        "A robot dog chasing a holographic bone and wagging its metallic tail", 
+        "An astronaut playing golf on the moon with a rainbow trail ball",
+        "A cheerful cloud raining colorful candies over a grey city", 
+        "A group of robots having a messy pillow fight in a high-tech lab"
+    ]
+
     categories = {
         "Cyberpunk & Sci-Fi": [
             "Old Cyberpunk Wizard", "Futuristic Samurai", "Neon Noir Detective", "Cyborg Geisha", 
@@ -539,28 +550,34 @@ def run_final():
         "in a forest of mirrors", "during a meteor shower", "inside a drop of dew",
     ]
     
-    # РАВНОМЕРНЫЙ ВЫБОР: сначала категория, потом объект
-    chosen_category = random.choice(list(categories.keys()))
-    s = random.choice(categories[chosen_category])
-    st1 = random.choice(styles)
-    st2 = random.choice(styles)
-    while st2 == st1: st2 = random.choice(styles)
-    l = random.choice(lighting)
-    c = random.choice(contexts)
-    
-    # УСИЛЕНИЕ КАЧЕСТВА ПРОМПТА
-    qualifiers = "masterpiece, 8k, highly detailed, photorealistic, intricate textures, masterpiece composition, vivid colors, professionally rendered"
-    t = f"{st1} and {st1} mix style of {s} {c}, with {l}, {qualifiers}"
+    # ВЫБОР ТЕМЫ
+    if IS_SUNDAY_VIDEO:
+        s = random.choice(humor_subjects)
+        t = f"Hyper-realistic and humorous video of {s}, positive vibe, vivid colors, morning inspiration"
+        chosen_category = "Sunday Humor"
+    else:
+        chosen_category = random.choice(list(categories.keys()))
+        s = random.choice(categories[chosen_category])
+        st1 = random.choice(styles)
+        st2 = random.choice(styles)
+        while st2 == st1: st2 = random.choice(styles)
+        l = random.choice(lighting)
+        c = random.choice(contexts)
+        qualifiers = "masterpiece, 8k, highly detailed, photorealistic, intricate textures, masterpiece composition, vivid colors, professionally rendered"
+        t = f"{st1} and {st2} mix style of {s} {c}, with {l}, {qualifiers}"
     
     print(f"🎲 Категория: [{chosen_category}]")
     print(f"🎲 Сгенерирована тема (God Mode V4.0): {t}")
-    
-        # --- 2. ШАГ: ГЕНЕРИРУЕМ ТЕКСТ (ЗАГОЛОВОК, КОНЦЕПТ, ТЕГИ) ---
-    headers_common = {"User-Agent": "Mozilla/5.0"}
-    
-    # 1. Текст от Groq
+
+    # ЕСЛИ ВОСКРЕСЕНЬЕ - МЕНЯЕМ ПРОМПТ ДЛЯ ТЕКСТА
+    if IS_SUNDAY_VIDEO:
+        t_prompt = f"Write a VERY FUNNY and MOTIVATIONAL Russian post about {s}. Use many emojis! The goal is to make people happy for Monday morning. Structure: TITLE, CONCEPT, TAGS."
+    else:
+        t_prompt = t
+
+    # --- 2. ШАГ: ГЕНЕРИРУЕМ ТЕКСТ ---
     print("📝 Генерирую текст под тему...")
-    raw = generate_text_groq(t)
+    raw = generate_text_groq(t_prompt)
     
     # 2. Если Groq молчит -> OpenRouter
     if not raw:
