@@ -477,7 +477,6 @@ def run_final():
         else:
             target = f"@{target}"
 
-    # --- 3. ШАГ: ГЕНЕРАЦИЯ (ART ИЛИ VIDEO) ---
     video_url = None
     if VIDEO_MODE:
         print(f"🎬 РЕЖИМ ВИДЕО АКТИВИРОВАН! Модель: Sora 2")
@@ -485,8 +484,7 @@ def run_final():
         video_prompt = f"{t}, high realism, cinematic style, detailed, 4k"
         video_url = generate_video_kie(video_prompt, model="sora-2", duration=10, size="720p")
         if not video_url:
-            print("⚠️ Видео не удалось сгенерировать. Пробуем фото как запасной вариант.")
-            VIDEO_MODE = False
+            raise Exception("🎬 CRITICAL: Video generation failed and fallback is disabled.")
     
     image_url, image_data = None, None
     provider_name = "Unknown"
