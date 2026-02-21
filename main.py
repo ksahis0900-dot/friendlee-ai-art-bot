@@ -164,23 +164,7 @@ def generate_text_kie(theme):
         print(f"Kie.ai Exception: {e}")
         return None
 
-import feedparser
-
-def get_ai_news():
-    print("📰 Ищу свежие новости про ИИ...")
-    feeds = [
-        "https://techcrunch.com/category/artificial-intelligence/feed/",
-        "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
-    ]
-    try:
-        for url in feeds:
-            feed = feedparser.parse(url)
-            if feed.entries:
-                entry = random.choice(feed.entries[:5]) # Берем одну из 5 свежих
-                return f"News: {entry.title}"
-    except Exception as e:
-        print(f"RSS Error: {e}")
-    return None
+# --- УДАЛЕНО: Reddit и Новости ИИ больше не используются ---
 
 # --- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ ЧЕРЕЗ GEMINI ---
 def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="landscape"):
@@ -344,203 +328,232 @@ def run_final():
 
 
     # --- 1. ШАГ: РЕШАЕМ ОТКУДА БРАТЬ ИДЕЮ ---
-    source = "INTERNAL"
+    # ТЕПЕРЬ ТОЛЬКО ВНУТРЕННИЙ ГЕНЕРАТОР (МЕГА-БИБЛИОТЕКА)
     t = None
+    source = "INTERNAL"
     
-    # 50% шанс Reddit
-    if random.random() < 0.5:
-        print("🌍 Ищу вдохновение на Reddit...")
-        subreddits = ["Art", "DigitalArt", "Cyberpunk", "ImaginaryLandscapes", "Midjourney", "StableDiffusion-Concepts"]
-        bsub = random.choice(subreddits)
-        try:
-            r_url = f"https://www.reddit.com/r/{bsub}/top.json?limit=15&t=day"
-            resp = requests.get(r_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
-            if resp.status_code == 200:
-                posts = resp.json()['data']['children']
-                valid_posts = [p['data']['title'] for p in posts if not p['data']['stickied']]
-                if valid_posts:
-                    theme_core = random.choice(valid_posts)
-                    t = f"Art inspired by: {theme_core}"
-                    source = f"REDDIT (r/{bsub})"
-                    print(f"🔥 НАЙДЕН ТРЕНД: {theme_core}")
-        except Exception as e:
-            print(f"⚠️ Ошибка Reddit: {e}")
+    # ПРОВЕРКА НА АВТО-ВИДЕО (Воскресенье 22:00 МСК = 19:00 UTC)
+    from datetime import datetime, timezone, timedelta
+    now_utc = datetime.now(timezone.utc)
+    msk_delta = timedelta(hours=3)
+    now_msk = now_utc + msk_delta
+    
+    # Если воскресенье (6) и время 22:00 (час 22) -> включаем видео
+    if now_msk.weekday() == 6 and now_msk.hour == 22:
+        print("🕒 АВТО-РЕЖИМ: Воскресенье 22:00 МСК. Активируем VIDEO_MODE!")
+        VIDEO_MODE = True
 
-    # Если Reddit не сработал -> 30% Новости ИИ
-    if not t and random.random() < 0.3:
-        news_theme = get_ai_news()
-        if news_theme:
-            t = f"Artistic interpretation of: {news_theme}"
-            source = "AI NEWS"
-            print(f"📰 ТЕМА ИЗ НОВОСТЕЙ: {news_theme}")
-
-    # Если всё еще нет темы -> ВНУТРЕННИЙ ГЕНЕРАТОР (GOD MODE V3.0)
-    if not t:
-        # === МЕГА-БИБЛИОТЕКА КОНЦЕПЦИЙ (категоризированная) ===
-        categories = {
-            "Cyberpunk & Sci-Fi": [
-                "Old Cyberpunk Wizard", "Futuristic Samurai", "Neon Noir Detective", "Cyborg Geisha", 
-                "High-Tech Astronaut", "Post-Apocalyptic Stalker", "Quantum Computer Core", "Mech Warrior",
-                "Holographic AI Entity", "Time Traveler in Void", "Space Marine with Plasma Sword", 
-                "Android with Porcelain Skin", "Glitch in Matrix", "Dyson Sphere", "Flying Car Chase",
-                "Cyber-Monk Meditating", "Nanotech Swarm", "Robot playing Violin", "Hacker in VR",
-                "Retro-Futuristic TV Head Character", "Cassette Futurism Dashboard", "Atompunk City",
-                "Soviet Cyberpunk Panel Building", "Cybernetic Pharaoh", "Neon Demon", "Ghost in the Shell",
-            ],
-            "Fantasy & Myth": [
-                "Ethereal Goddess", "Viking Warlord", "Mythical Dragon", "Ancient Greek Statue with Neon",
-                "Crystal Golem", "Phoenix Rising from Ashes", "Elf Archer with Laser Bow", "Necromancer in City",
-                "Floating Island Castle", "Magic Potion Shop", "Forest Spirit", "Demon Hunter", "Vampire Lord",
-                "Werewolf in Suit", "Ghost Ship inside Bottle", "Mermaid in Toxic Ocean", "Fallen Angel",
-                "Cthulhu in Cyberpunk City", "Skeleton playing Saxophone", "Knight fighting Dragon in Space",
-                "Anubis with Laser Eyes", "Medusa with Fiber Optic Hair", "Valkyrie on Hoverbike",
-            ],
-            "Nature & Bio-Mech": [
-                "Biomechanical Tiger", "Cosmic Jellyfish", "Steampunk Owl", "Clockwork Heart", 
-                "Electric Eel in Sky", "Crystal Flower", "Liquid Metal Cat", "Tree of Life in Space",
-                "Mushroom Kingdom", "Lava Turtle", "Frozen Lightning", "Nebula in a Jar", "DNA Helix Galaxy",
-                "Snail with Tiny House", "Whale floating over City", "Spider made of Glass", "Radioactive Butterfly",
-                "Fox with 9 Tails of Fire", "Owl made of Books", "Lion made of Stars",
-            ],
-            "Abstract & Surreal": [
-                "Fractal Soul", "Melting Clocks in Desert", "Stairway to Heaven", "Mirror Dimension",
-                "Human Silhouette made of Stars", "Exploding Color Dust", "Liquid Gold River", 
-                "Glass Chess Board", "Portal to Another World", "Brain connected to Universe",
-                "Eye of the Storm", "Sound Waves visible", "Time Frozen in Amber", "Universe inside a Marble",
-                "Tiny World inside a Lightbulb", "Shipwreck in a Desert", "Oasis in Cyber-Wasteland",
-                "Chess Game between God and Devil", "Doorway in the Middle of Ocean",
-            ],
-            "Architecture & Places": [
-                "Futuristic Skyscraper", "Abandoned Space Station", "Underwater Hotel", "Cloud City", 
-                "Cyberpunk Street Food Cart", "Temple of Lost Technology", "Library of Infinite Books", 
-                "Neon Jungle", "Mars Colony Greenhouse", "Vertical Forest City", "Gothic Cathedral in Space",
-                "Brutalist Concrete Bunker", "Art Deco Spaceport", "Pyramid of Glass", "Infinite Hallway",
-                "Japanese Shrine in Fog", "Abandoned Amusement Park", "Underground Neon Market",
-                "Floating Temple above Clouds", "Crystal Cave City",
-            ],
-            "Fashion & Avant-Garde": [
-                "Model in Liquid Glass Dress", "Cyber-Fashion Runway", "Mask made of Diamonds",
-                "Dress made of Smoke", "Suit made of Mirrors", "Shoes made of Lava", "Cyber-Goth Rave",
-                "Haute Couture Alien Princess", "Feather Crown Queen", "Neon Wire Jewelry",
-                "Holographic Cape Warrior", "Bioluminescent Body Paint",
-            ],
-            "Horror & Dark": [
-                "Haunted Dollhouse", "Creepy Forest Entity", "Eldritch Horror emerging from Sea",
-                "Possessed Puppet", "Shadow Creature in Fog", "Glitching Ghost in Old TV",
-                "Dark Carnival at Midnight", "Witch in Crystal Swamp", "Zombie in Business Suit",
-                "Living Nightmare in Mirror", "Plague Doctor with Neon Mask",
-                "Abandoned Hospital with Glowing Eyes", "Demon Barista",
-            ],
-            "Portraits & Characters": [
-                "Old Man with Galaxy Eyes", "Girl with Hair made of Ocean Waves",
-                "Child holding a Miniature Sun", "Tribal Warrior with LED Tattoos", 
-                "Elderly Woman made of Flowers", "Twin Dancers of Light and Shadow",
-                "Samurai with Holographic Armor", "Sherlock Holmes in Year 3000",
-                "Pirate Captain with Robot Parrot", "Mad Scientist with Tesla Coils",
-                "Street Artist Painting Reality", "Blind Oracle with Third Eye",
-            ],
-            "Space & Cosmos": [
-                "Astronaut floating in Nebula", "Black Hole Event Horizon", "Alien Market on Saturn Rings",
-                "Space Whale Migration", "Comet Rider", "Terraforming Mars Timelapse",
-                "Binary Star Sunset", "Intergalactic Lighthouse", "Cosmic Coral Reef",
-                "Space Elevator View from Top", "Moon Base Jazz Club",
-                "Asteroid Mining Station", "Wormhole Nexus",
-            ],
-            "Food & Still Life Art": [
-                "Sushi Nebula", "Coffee Universe in a Cup", "Crystallized Fruit Explosion",
-                "Cake shaped like a Galaxy", "Ramen with Dragon Emerging", "Ice Cream Volcano",
-                "Chocolate Factory in Willy Wonka Style", "Bioluminescent Wine Glass",
-                "Breakfast Table on Mars", "Tea Ceremony in Zero Gravity",
-            ],
-            "Music & Sound": [
-                "Guitar made of Lightning", "DJ Console in another Dimension",
-                "Saxophone pouring Liquid Gold", "Piano Keys Floating in Space",
-                "Headphones with Universe Inside", "Vinyl Record as a Portal",
-                "Bass Drop shaking a City", "Opera Singer Breaking Glass with Voice",
-                "Drum Circle around a Bonfire on Moon", "Synthesizer growing like a Plant",
-            ],
-            "Vehicles & Machines": [
-                "Steampunk Train through Clouds", "Cyberpunk Motorcycle with Wings",
-                "Submarine shaped like a Fish", "Hot Air Balloon made of Stained Glass",
-                "Rocket powered by Magic", "Tank covered in Flowers",
-                "Flying Carpet with LED Lights", "Time Machine made of Bones",
-                "Solar Sail Ship near Jupiter", "Robot Horse with Jet Legs",
-            ],
-            "Underwater World": [
-                "Underwater City with Coral Towers", "Deep Sea Anglerfish Lantern",
-                "Sunken Spaceship Overgrown with Sea Life", "Jellyfish Chandelier",
-                "Mermaid Library", "Pressure Suit Explorer in Mariana Trench",
-                "Bioluminescent Cave Network", "Kraken wrapping around Submarine",
-                "Underwater Volcano with Fish", "Coral Reef made of Gemstones",
-            ],
-            "Micro World": [
-                "City on a Leaf", "Civilization inside a Raindrop",
-                "Battle of Ants riding Beetles", "Mushroom Village after Rain",
-                "Pollen Grain as a Planet", "Bacteria Landscape under Microscope",
-                "Spider Web with Morning Dew Galaxies", "Moss Forest at 1000x Zoom",
-                "Snowflake Architecture", "Cell Division as Art",
-            ],
-        }
-        
-        styles = [
-            # Рендер / 3D
-            "Unreal Engine 5 Render", "Octane Render", "Redshift Render", "V-Ray", "Blender Cycles",
-            # Фото
-            "Hyper-realistic Photo", "8k Raw Photo", "Macro Lens Detail", "Long Exposure", "Tilt-Shift Photo",
-            "DSLR Portrait", "Film Noir Photography", "Infrared Photography", "Double Exposure Photo",
-            # Кинематограф
-            "Cinematic Shot", "Anamorphic Lens Flare", "IMAX Wide Angle", "Drone Aerial View",
-            # Арт-стили
-            "Cyber-Renaissance", "Biopunk", "Solarpunk", 
-            "Vaporwave", "Synthwave", "Gothic Futurism", "Baroque Sci-Fi", 
-            "Rococo Cyberpunk", "Pop Art Neon", "Glitch Art", "Bauhaus Style", "Voxel Art",
-            "Art Nouveau Digital", "Ukiyo-e Modern", "Afrofuturism", "Dieselpunk",
-            "Low Poly Art", "Pixel Art HD", "Watercolor Digital", "Oil Painting Realistic",
-            "Stained Glass Art", "Mosaic Art", "Chalk Art Photorealistic",
-            "Comic Book Style", "Anime Cinematic", "Studio Ghibli Inspired",
-            "Dark Fantasy Illustration", "Concept Art for AAA Game",
-        ]
-        
-        lighting = [
-            "Volumetric Lighting", "Bioluminescence", "Neon Glow", "God Rays", "Rim Lighting", 
-            "Cinematic Color Grading", "Dark Contrast", "Pastel Soft Light", "Cyber-Blue Bloom", 
-            "Golden Hour", "Midnight Rain Reflections", "Cyber-Green Haze", "Rembrandt Lighting",
-            "Northern Lights Aurora", "Candlelight Warm Glow", "Laser Grid Light",
-            "Sunset Silhouette", "Moonlight Silver Glow", "Neon Pink and Blue Split",
-            "Underwater Caustics", "Firefly Bokeh", "Studio Dramatic Spotlight",
-            "Holographic Rainbow Refraction", "Eclipse Shadow Light",
-        ]
-        
-        contexts = [
-            "in heavy rain at night", "standing on a cliff edge", 
-            "surrounded by floating crystals", "in a neon-lit alleyway", 
-            "with glowing eyes", "under a double moon sky",
-            "fighting a shadow monster", "reading a holographic scroll",
-            "drinking coffee in space", "playing chess with death",
-            "dissolving into data", "blooming with flowers",
-            "meditating on a mountain peak", "dancing in the void",
-            "emerging from a portal", "reflected in a puddle",
-            "inside a snow globe", "at the edge of the known universe",
-            "during a solar eclipse", "in a field of bioluminescent flowers",
-            "surrounded by floating lanterns", "inside a kaleidoscope",
-            "walking on water", "in an infinite mirror room",
-            "during cherry blossom rain", "at the bottom of the ocean",
-            "inside a giant clockwork", "on a floating iceberg",
-            "in a library of burning books", "at a crossroads between dimensions",
-        ]
-        
-        # РАВНОМЕРНЫЙ ВЫБОР: сначала категория, потом объект
-        chosen_category = random.choice(list(categories.keys()))
-        s = random.choice(categories[chosen_category])
-        st1 = random.choice(styles)
-        st2 = random.choice(styles)
-        while st2 == st1:  # Гарантируем разные стили
-            st2 = random.choice(styles)
-        l = random.choice(lighting)
-        c = random.choice(contexts)
-        t = f"{st1} and {st2} style of {s} {c}, with {l}, masterpiece, 8k, detailed"
-        print(f"🎲 Категория: [{chosen_category}]")
-        print(f"🎲 Сгенерирована тема (God Mode V3.0): {t}")
+    # === МЕГА-БИБЛИОТЕКА КОНЦЕПЦИЙ (РАСШИРЕНА В 2 РАЗА) ===
+    categories = {
+        "Cyberpunk & Sci-Fi": [
+            "Old Cyberpunk Wizard", "Futuristic Samurai", "Neon Noir Detective", "Cyborg Geisha", 
+            "High-Tech Astronaut", "Post-Apocalyptic Stalker", "Quantum Computer Core", "Mech Warrior",
+            "Holographic AI Entity", "Time Traveler in Void", "Space Marine with Plasma Sword", 
+            "Android with Porcelain Skin", "Glitch in Matrix", "Dyson Sphere", "Flying Car Chase",
+            "Cyber-Monk Meditating", "Nanotech Swarm", "Robot playing Violin", "Hacker in VR",
+            "Retro-Futuristic TV Head Character", "Cassette Futurism Dashboard", "Atompunk City",
+            "Soviet Cyberpunk Panel Building", "Cybernetic Pharaoh", "Neon Demon", "Ghost in the Shell",
+            "Orbital Ring Station", "Cyber-Dragon over Neo-Tokyo", "Memory Cloud Server",
+            "Bioluminescent Cyborg Forest", "Steam-powered Satellite", "Neural Link Station",
+            "Holographic Market in Rain", "Plasma Shield Generator", "Interstellar Courier",
+            "Cybernetic Hive Mind", "Virtual Reality Architect", "Gravity-defying Skatepark",
+            "Neon-lit Surgery Robot", "Data-stream Waterfall", "Iron Man style Mech Suit",
+            "Cyber-Goth Cathedral", "Floating Bio-Dome", "Ancient Temple with Tech-Glyphs",
+        ],
+        "Fantasy & Myth": [
+            "Ethereal Goddess", "Viking Warlord", "Mythical Dragon", "Ancient Greek Statue with Neon",
+            "Crystal Golem", "Phoenix Rising from Ashes", "Elf Archer with Laser Bow", "Necromancer in City",
+            "Floating Island Castle", "Magic Potion Shop", "Forest Spirit", "Demon Hunter", "Vampire Lord",
+            "Werewolf in Suit", "Ghost Ship inside Bottle", "Mermaid in Toxic Ocean", "Fallen Angel",
+            "Cthulhu in Cyberpunk City", "Skeleton playing Saxophone", "Knight fighting Dragon in Space",
+            "Anubis with Laser Eyes", "Medusa with Fiber Optic Hair", "Valkyrie on Hoverbike",
+            "Unicorn with Silver Horn", "Griffin guarding Gold", "Wizard Tower in Clouds",
+            "Troll under a Bridge of Light", "Fairy Queen in Moonlight", "Dwarven Forge of Stars",
+            "Zeus wielding Lightning Scepter", "Cerberus as a Guard Dog", "Hydra in a Swamp",
+            "Pegasus flying over Mars", "Minotaur in a Neon Labyrinth", "Siren singing in Void",
+            "Druid commanding Root Monsters", "Centaur with Quantum Bow", "Banshee's Digital Scream",
+            "Excalibur embedded in a CPU", "Naga Priestess", "Icarus with Tech-Wings",
+        ],
+        "Nature & Bio-Mech": [
+            "Biomechanical Tiger", "Cosmic Jellyfish", "Steampunk Owl", "Clockwork Heart", 
+            "Electric Eel in Sky", "Crystal Flower", "Liquid Metal Cat", "Tree of Life in Space",
+            "Mushroom Kingdom", "Lava Turtle", "Frozen Lightning", "Nebula in a Jar", "DNA Helix Galaxy",
+            "Snail with Tiny House", "Whale floating over City", "Spider made of Glass", "Radioactive Butterfly",
+            "Fox with 9 Tails of Fire", "Owl made of Books", "Lion made of Stars",
+            "Eagle with Telescope Eyes", "Cyber-Wolf with Blue Glow", "Butterfly with Stained Glass Wings",
+            "Plant growing through Concrete Heart", "Robot Bee pollinating LED Flowers",
+            "Deer with Antlers of Coral", "Mechanical Snake in Desert", "Shark with Laser Fins",
+            "Flamingo made of Pink Diamonds", "Gorilla with Cyber-Arms", "Panda in Bamboo Matrix",
+            "Dragonfly with Helicopter Blades", "Bio-Mech Lotus Flower", "Ant Colony City",
+            "Chameleon blending into Pixels", "Polar Bear in Arctic Lab", "Rhino made of Obsidian",
+        ],
+        "Abstract & Surreal": [
+            "Fractal Soul", "Melting Clocks in Desert", "Stairway to Heaven", "Mirror Dimension",
+            "Human Silhouette made of Stars", "Exploding Color Dust", "Liquid Gold River", 
+            "Glass Chess Board", "Portal to Another World", "Brain connected to Universe",
+            "Eye of the Storm", "Sound Waves visible", "Time Frozen in Amber", "Universe inside a Marble",
+            "Tiny World inside a Lightbulb", "Shipwreck in a Desert", "Oasis in Cyber-Wasteland",
+            "Chess Game between God and Devil", "Doorway in the Middle of Ocean",
+            "Infinity Loop of Dreams", "Geometric Rain", "Painting coming to Life",
+            "Gravity-defying Water", "Tornado of Musical Notes", "Tunnel of Light and shadow",
+            "Origami Bird of Fire", "Shadow becoming 3D", "Labyrinth of Memories",
+            "Exploding Fruit of Knowledge", "Digital DNA Strand", "Cloud shaped like a Face",
+            "Shattered Reality Mirror", "Garden of Iron Roses", "Stardust Tears",
+            "Prism of Human Emotions", "Mathematical Beauty of Fractals",
+        ],
+        "Architecture & Places": [
+            "Futuristic Skyscraper", "Abandoned Space Station", "Underwater Hotel", "Cloud City", 
+            "Cyberpunk Street Food Cart", "Temple of Lost Technology", "Library of Infinite Books", 
+            "Neon Jungle", "Mars Colony Greenhouse", "Vertical Forest City", "Gothic Cathedral in Space",
+            "Brutalist Concrete Bunker", "Art Deco Spaceport", "Pyramid of Glass", "Infinite Hallway",
+            "Japanese Shrine in Fog", "Abandoned Amusement Park", "Underground Neon Market",
+            "Floating Temple above Clouds", "Crystal Cave City",
+            "San Francisco year 2100", "Floating Venice of the Future", "Mayan Temple with Holograms",
+            "Steampunk London with Zeppelins", "Treehouse Village in Giant Forest",
+            "Moon Village Observatory", "Desert Mirage Oasis", "Glass Bridge over Lava",
+            "Ice Palace in Antarctica", "Cybernetic Colosseum", "Vertical Slums of Neo-Tokyo",
+            "Rainbow Waterfall City", "Zero-G Concert Hall", "Ancient Cave with Bioluminescence",
+        ],
+        "Fashion & Avant-Garde": [
+            "Model in Liquid Glass Dress", "Cyber-Fashion Runway", "Mask made of Diamonds",
+            "Dress made of Smoke", "Suit made of Mirrors", "Shoes made of Lava", "Cyber-Goth Rave",
+            "Haute Couture Alien Princess", "Feather Crown Queen", "Neon Wire Jewelry",
+            "Holographic Cape Warrior", "Bioluminescent Body Paint",
+            "Gold Armor Empress", "Plastic Wrapper Chic", "Victorian Steampunk Outfit",
+            "LED Face Mask", "Butterfly Wing Gown", "Metal Silk Suit", "Fiber Optic Hair",
+            "Bubble Wrap Dress", "Crystal Armor Warrior", "Living Flower Hat", "Electronic Lace",
+        ],
+        "Horror & Dark": [
+            "Haunted Dollhouse", "Creepy Forest Entity", "Eldritch Horror emerging from Sea",
+            "Possessed Puppet", "Shadow Creature in Fog", "Glitching Ghost in Old TV",
+            "Dark Carnival at Midnight", "Witch in Crystal Swamp", "Zombie in Business Suit",
+            "Living Nightmare in Mirror", "Plague Doctor with Neon Mask",
+            "Abandoned Hospital with Glowing Eyes", "Demon Barista",
+            "Reaper in a Flower Field", "Scarecrow with glowing skull", "Grave of Lost Hopes",
+            "Demon Lord on Throne of Skulls", "Ghost Train", "Vampire's Dinner Party",
+            "Shadow under the Bed", "Creepy Clown in Sewer", "Evil Doll with Scissors",
+        ],
+        "Portraits & Characters": [
+            "Old Man with Galaxy Eyes", "Girl with Hair made of Ocean Waves",
+            "Child holding a Miniature Sun", "Tribal Warrior with LED Tattoos", 
+            "Elderly Woman made of Flowers", "Twin Dancers of Light and Shadow",
+            "Samurai with Holographic Armor", "Sherlock Holmes in Year 3000",
+            "Pirate Captain with Robot Parrot", "Mad Scientist with Tesla Coils",
+            "Street Artist Painting Reality", "Blind Oracle with Third Eye",
+            "Viking with Blue Ice Eyes", "Indian Bride in Gold Cyber-Sari",
+            "African King with Diamond Mask", "Japanese Geisha with Metal Fans",
+            "Russian Cosmonaut in Retro Suit", "Dancer with Trails of Light",
+        ],
+        "Space & Cosmos": [
+            "Astronaut floating in Nebula", "Black Hole Event Horizon", "Alien Market on Saturn Rings",
+            "Space Whale Migration", "Comet Rider", "Terraforming Mars Timelapse",
+            "Binary Star Sunset", "Intergalactic Lighthouse", "Cosmic Coral Reef",
+            "Space Elevator View from Top", "Moon Base Jazz Club",
+            "Asteroid Mining Station", "Wormhole Nexus",
+            "Galaxy colliding with another", "Birth of a Star", "Space Junkyard",
+            "UFO over Desert Pyramids", "Alien Jungle on Europa", "Ring of Fire Star",
+        ],
+        "Food & Still Life Art": [
+            "Sushi Nebula", "Coffee Universe in a Cup", "Crystallized Fruit Explosion",
+            "Cake shaped like a Galaxy", "Ramen with Dragon Emerging", "Ice Cream Volcano",
+            "Chocolate Factory in Willy Wonka Style", "Bioluminescent Wine Glass",
+            "Breakfast Table on Mars", "Tea Ceremony in Zero Gravity",
+            "Hamburger made of Crystals", "Pizza with Star Toppings", "Berry Blast Explosion",
+        ],
+        "Music & Sound": [
+            "Guitar made of Lightning", "DJ Console in another Dimension",
+            "Saxophone pouring Liquid Gold", "Piano Keys Floating in Space",
+            "Headphones with Universe Inside", "Vinyl Record as a Portal",
+            "Bass Drop shaking a City", "Opera Singer Breaking Glass with Voice",
+            "Drum Circle around a Bonfire on Moon", "Synthesizer growing like a Plant",
+            "Violin made of Ice", "Cello with Vines", "Concert in a Bubble",
+        ],
+        "Vehicles & Machines": [
+            "Steampunk Train through Clouds", "Cyberpunk Motorcycle with Wings",
+            "Submarine shaped like a Fish", "Hot Air Balloon made of Stained Glass",
+            "Rocket powered by Magic", "Tank covered in Flowers",
+            "Flying Carpet with LED Lights", "Time Machine made of Bones",
+            "Solar Sail Ship near Jupiter", "Robot Horse with Jet Legs",
+            "Bicycle made of Glass", "Truck carrying a Rainbow", "Spaceship in a Garage",
+        ],
+        "Underwater World": [
+            "Underwater City with Coral Towers", "Deep Sea Anglerfish Lantern",
+            "Sunken Spaceship Overgrown with Sea Life", "Jellyfish Chandelier",
+            "Mermaid Library", "Pressure Suit Explorer in Mariana Trench",
+            "Bioluminescent Cave Network", "Kraken wrapping around Submarine",
+            "Underwater Volcano with Fish", "Coral Reef made of Gemstones",
+            "Shark with Armor", "Turtle with Island on Back", "Ray as a Spacecraft",
+        ],
+        "Micro World": [
+            "City on a Leaf", "Civilization inside a Raindrop",
+            "Battle of Ants riding Beetles", "Mushroom Village after Rain",
+            "Pollen Grain as a Planet", "Bacteria Landscape under Microscope",
+            "Spider Web with Morning Dew Galaxies", "Moss Forest at 1000x Zoom",
+            "Snowflake Architecture", "Cell Division as Art",
+            "Virus as a Crystal Spider", "DNA Strand as a Neon Staircase",
+        ],
+    }
+    
+    styles = [
+        "Unreal Engine 5 Render", "Octane Render", "Redshift Render", "V-Ray", "Blender Cycles",
+        "Hyper-realistic Photo", "8k Raw Photo", "Macro Lens Detail", "Long Exposure", "Tilt-Shift Photo",
+        "DSLR Portrait", "Film Noir Photography", "Infrared Photography", "Double Exposure Photo",
+        "Cinematic Shot", "Anamorphic Lens Flare", "IMAX Wide Angle", "Drone Aerial View",
+        "Cyber-Renaissance", "Biopunk", "Solarpunk", "Steampunk Digital", "Dieselpunk Art",
+        "Vaporwave", "Synthwave", "Gothic Futurism", "Baroque Sci-Fi", 
+        "Rococo Cyberpunk", "Pop Art Neon", "Glitch Art", "Bauhaus Style", "Voxel Art",
+        "Art Nouveau Digital", "Ukiyo-e Modern", "Afrofuturism", "Stained Glass Art",
+        "Low Poly Art", "Pixel Art HD", "Watercolor Digital", "Oil Painting Realistic",
+        "Chalk Art Photorealistic", "Comic Book Style", "Anime Cinematic", "Studio Ghibli Inspired",
+        "Dark Fantasy Illustration", "Concept Art for AAA Game", "Ethereal Oil Painting",
+        "Cubism Modern", "Impressionism Digital", "Surrealism Dali Style", "Pencil Sketch Detailed",
+    ]
+    
+    lighting = [
+        "Volumetric Lighting", "Bioluminescence", "Neon Glow", "God Rays", "Rim Lighting", 
+        "Cinematic Color Grading", "Dark Contrast", "Pastel Soft Light", "Cyber-Blue Bloom", 
+        "Golden Hour", "Midnight Rain Reflections", "Cyber-Green Haze", "Rembrandt Lighting",
+        "Northern Lights Aurora", "Candlelight Warm Glow", "Laser Grid Light",
+        "Sunset Silhouette", "Moonlight Silver Glow", "Neon Pink and Blue Split",
+        "Underwater Caustics", "Firefly Bokeh", "Studio Dramatic Spotlight",
+        "Holographic Rainbow Refraction", "Eclipse Shadow Light", "Lightning Strike Flash",
+        "Fluorescent Tube Light", "Street Light Shadows", "Optical Fiber Glow",
+    ]
+    
+    contexts = [
+        "in heavy rain at night", "standing on a cliff edge", 
+        "surrounded by floating crystals", "in a neon-lit alleyway", 
+        "with glowing eyes", "under a double moon sky",
+        "fighting a shadow monster", "reading a holographic scroll",
+        "drinking coffee in space", "playing chess with death",
+        "dissolving into data", "blooming with flowers",
+        "meditating on a mountain peak", "dancing in the void",
+        "emerging from a portal", "reflected in a puddle",
+        "inside a snow globe", "at the edge of the known universe",
+        "during a solar eclipse", "in a field of bioluminescent flowers",
+        "surrounded by floating lanterns", "inside a kaleidoscope",
+        "walking on water", "in an infinite mirror room",
+        "during cherry blossom rain", "at the bottom of the ocean",
+        "inside a giant clockwork", "on a floating iceberg",
+        "in a library of burning books", "at a crossroads between dimensions",
+        "in a forest of mirrors", "during a meteor shower", "inside a drop of dew",
+    ]
+    
+    # РАВНОМЕРНЫЙ ВЫБОР: сначала категория, потом объект
+    chosen_category = random.choice(list(categories.keys()))
+    s = random.choice(categories[chosen_category])
+    st1 = random.choice(styles)
+    st2 = random.choice(styles)
+    while st2 == st1: st2 = random.choice(styles)
+    l = random.choice(lighting)
+    c = random.choice(contexts)
+    
+    # УСИЛЕНИЕ КАЧЕСТВА ПРОМПТА
+    qualifiers = "masterpiece, 8k, highly detailed, photorealistic, intricate textures, masterpiece composition, vivid colors, professionally rendered"
+    t = f"{st1} and {st1} mix style of {s} {c}, with {l}, {qualifiers}"
+    
+    print(f"🎲 Категория: [{chosen_category}]")
+    print(f"🎲 Сгенерирована тема (God Mode V4.0): {t}")
     
         # --- 2. ШАГ: ГЕНЕРИРУЕМ ТЕКСТ (ЗАГОЛОВОК, КОНЦЕПТ, ТЕГИ) ---
     headers_common = {"User-Agent": "Mozilla/5.0"}
