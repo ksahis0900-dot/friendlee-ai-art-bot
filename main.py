@@ -183,6 +183,70 @@ def get_ai_news():
     return None
 
 # --- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ ЧЕРЕЗ GEMINI ---
+def generate_video_kie(prompt, model="sora-2", duration=10, size="720p"):
+    """Генерирует видео через Kie.ai (Sora 2)"""
+    if not KIE_KEY:
+        print("❌ Ошибка: KIE_KEY не задан.")
+        return None
+    
+    print(f"🎬 Kie.ai Video ({model}) начинает генерацию (Цель: {duration} сек, {size})...")
+    url = "https://api.kie.ai/v1/video/generations"
+    headers = {
+        "Authorization": f"Bearer {KIE_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": model,
+        "prompt": prompt,
+        "duration": duration,
+        "size": size
+    }
+    
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=60)
+        if r.status_code == 200:
+            res_data = r.json()
+            task_id = res_data.get('id') or res_data.get('task_id')
+            
+            if not task_id:
+                # Вдруг вернул ссылку сразу (редко для видео)
+                data_list = res_data.get('data', [])
+                if data_list and data_list[0].get('url'):
+                    return data_list[0]['url']
+                return None
+            
+            print(f"⏳ Видео в очереди (Task ID: {task_id}). Ожидание 2-5 минут...")
+            
+            # Поллинг (опрос готовности)
+            poll_url = f"https://api.kie.ai/v1/video/generations/{task_id}"
+            max_attempts = 40 # 40 * 15 сек = 10 минут максимум
+            for attempt in range(max_attempts):
+                time.sleep(15)
+                pr = requests.get(poll_url, headers=headers, timeout=30)
+                if pr.status_code == 200:
+                    status_data = pr.json()
+                    status = status_data.get('status', '').lower()
+                    print(f"   [{attempt+1}] Статус видео: {status}")
+                    
+                    if status in ['succeeded', 'completed', 'finished']:
+                        v_url = status_data.get('data', [{}])[0].get('url')
+                        if v_url:
+                            print(f"✅ ВИДЕО ГОТОВО: {v_url}")
+                            return v_url
+                    elif status in ['failed', 'error', 'canceled']:
+                        print(f"❌ Генерация видео провалилась: {status_data}")
+                        return None
+                else:
+                    print(f"⚠️ Ошибка опроса ({pr.status_code}): {pr.text[:200]}")
+            
+            print("🛑 Превышено время ожидания видео.")
+        else:
+            print(f"⚠️ Ошибка API Kie.ai Video ({r.status_code}): {r.text[:300]}")
+    except Exception as e:
+        print(f"⚠️ Ошибка при запросе видео: {e}")
+    return None
+
 def generate_image_gemini(prompt):
     """Генерирует картинку через Gemini 2.5 Flash Image (бесплатно с GOOGLE_KEY)"""
     if not GOOGLE_KEY:
@@ -233,6 +297,7 @@ def run_final():
     
     # ПРОВЕРКА НА ТЕСТОВЫЙ РЕЖИМ
     TEST_MODE = "--test" in sys.argv
+    VIDEO_MODE = "--video" in sys.argv
     FORCE_SOURCE = None
 
 
@@ -405,14 +470,24 @@ def run_final():
     if not (target.startswith('@') or target.startswith('-')):
         if target.isdigit():
             # Если это просто число, Telegram требует чтобы ID начинался с -100 для каналов
-            if not target.startswith('100'):
+            if not target.startswith('100') and not target.startswith('-'):
                 target = f"-100{target}"
-            else:
+            elif target.startswith('100'):
                 target = f"-{target}"
         else:
             target = f"@{target}"
 
-    # --- 3. ШАГ: РИСУЕМ (ROBUST LOOP V2) ---
+    # --- 3. ШАГ: ГЕНЕРАЦИЯ (ART ИЛИ VIDEO) ---
+    video_url = None
+    if VIDEO_MODE:
+        print(f"🎬 РЕЖИМ ВИДЕО АКТИВИРОВАН! Модель: Sora 2")
+        # Для видео добавим приписку о реализме, как просил пользователь
+        video_prompt = f"{t}, high realism, cinematic style, detailed, 4k"
+        video_url = generate_video_kie(video_prompt, model="sora-2", duration=10, size="720p")
+        if not video_url:
+            print("⚠️ Видео не удалось сгенерировать. Пробуем фото как запасной вариант.")
+            VIDEO_MODE = False
+    
     image_url, image_data = None, None
     provider_name = "Unknown"
 
@@ -556,7 +631,8 @@ def run_final():
             continue
 
     # --- 4. ШАГ: ОТПРАВКА ---
-    if not image_url and not image_data: raise Exception("CRITICAL: All Art Engines failed.")
+    if not video_url and not image_url and not image_data: 
+        raise Exception("CRITICAL: No Art or Video generated.")
     
     if image_data:
         try:
@@ -568,22 +644,28 @@ def run_final():
         except Exception as e:
             print(f"❌ Verification failed: {e}")
             image_data = None
-            if not image_url: raise Exception("Incomplete Art Data.")
+            if not image_url and not video_url: 
+                raise Exception("Incomplete Art Data.")
 
     for attempt in range(3):
         try:
             print(f"📤 Attempt {attempt+1}: Sending to {target}...")
-            if image_url: 
+            
+            if video_url:
+                # Отправка видео
+                bot.send_video(target, video_url, caption=caption, parse_mode='HTML')
+            elif image_url: 
                 bot.send_photo(target, image_url, caption=caption, parse_mode='HTML')
             else:
                 image_data.seek(0)
                 bot.send_photo(target, image_data, caption=caption, parse_mode='HTML')
-            print("🎉 SUCCESS! Art posted.")
+                
+            print("🎉 SUCCESS! Content posted.")
             return
         except Exception as e:
             print(f"❌ Attempt {attempt+1} failed: {e}")
             if attempt < 2:
-                time.sleep(10)
+                time.sleep(15)
             else:
                 raise
 
