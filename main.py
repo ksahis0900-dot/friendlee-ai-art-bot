@@ -419,6 +419,7 @@ def run_final():
     # СПИСОК МОДЕЛЕЙ (В порядке приоритета: Ключи -> Бесплатные Про -> Бесплатные Обычные -> Резерв)
     IMAGE_MODELS = [
         # --- TIER 1: PAID / KEYS (High Stability) ---
+        {"name": "Kie.ai (Flux Kontext)", "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
         {"name": "Laozhang (DALL-E 3)", "provider": "laozhang", "model": "dall-e-3", "key": LAOZHANG_KEY},
         {"name": "SiliconFlow (Flux Schnell)", "provider": "siliconflow", "model": "black-forest-labs/FLUX.1-schnell", "key": SILICONFLOW_KEY},
         {"name": "Runware (100@1)", "provider": "runware", "model": "runware:100@1", "key": RUNWARE_KEY},
@@ -456,8 +457,8 @@ def run_final():
         
         try:
             # --- PROVIDER LOGIC ---
-            if p_type == "laozhang":
-                r = requests.post("https://api.laozhang.ai/v1/images/generations",
+            if p_type == "kie_image":
+                r = requests.post("https://api.kie.ai/v1/images/generations",
                                   json={"model": model_cfg['model'], "prompt": t, "n": 1, "size": "1024x1024"},
                                   headers={"Authorization": f"Bearer {model_cfg['key']}", "Content-Type": "application/json"},
                                   timeout=60)
@@ -465,6 +466,14 @@ def run_final():
                     image_url = r.json()['data'][0]['url']
                 else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
 
+            elif p_type == "laozhang":
+                r = requests.post("https://api.laozhang.ai/v1/images/generations",
+                                  json={"model": model_cfg['model'], "prompt": t, "n": 1, "size": "1024x1024"},
+                                  headers={"Authorization": f"Bearer {model_cfg['key']}", "Content-Type": "application/json"},
+                                  timeout=60)
+                if r.status_code == 200:
+                    image_url = r.json()['data'][0]['url']
+                else: print(f"⚠️ {p_name} HTTP {r.status_code}: {r.text[:200]}")
             elif p_type == "siliconflow":
                 r = requests.post("https://api.siliconflow.cn/v1/images/generations", 
                                  json={"model": model_cfg['model'], "prompt": t, "image_size": "1024x1024", "batch_size": 1},
