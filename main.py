@@ -186,10 +186,10 @@ def get_ai_news():
 def generate_video_kie(prompt, model="sora-2", duration=10, size="720p"):
     """Генерирует видео через Kie.ai (Sora 2)"""
     if not KIE_KEY:
-        print("❌ Ошибка: KIE_KEY не задан.")
+        print("❌ Ошибка: KIE_KEY не задан.", flush=True)
         return None
     
-    print(f"🎬 Kie.ai Video ({model}) начинает генерацию (Цель: {duration} сек, {size})...")
+    print(f"🎬 Kie.ai Video ({model}) начинает генерацию (Цель: {duration} сек, {size})...", flush=True)
     url = "https://api.kie.ai/v1/video/generations"
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
@@ -205,46 +205,61 @@ def generate_video_kie(prompt, model="sora-2", duration=10, size="720p"):
     
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=60)
-        if r.status_code == 200:
+        print(f"📡 API Response Status: {r.status_code}", flush=True)
+        try:
             res_data = r.json()
+            print(f"📦 API Response Data: {json.dumps(res_data, indent=2)}", flush=True)
+        except:
+            print(f"📦 API Raw Response: {r.text}", flush=True)
+            return None
+
+        if r.status_code == 200:
             task_id = res_data.get('id') or res_data.get('task_id')
             
             if not task_id:
-                # Вдруг вернул ссылку сразу (редко для видео)
+                # Вдруг вернул ссылку сразу
                 data_list = res_data.get('data', [])
                 if data_list and data_list[0].get('url'):
                     return data_list[0]['url']
+                print("⚠️ Task ID not found in response.", flush=True)
                 return None
             
-            print(f"⏳ Видео в очереди (Task ID: {task_id}). Ожидание 2-5 минут...")
+            print(f"⏳ Видео в очереди (Task ID: {task_id}). Ожидание...", flush=True)
             
             # Поллинг (опрос готовности)
             poll_url = f"https://api.kie.ai/v1/video/generations/{task_id}"
-            max_attempts = 40 # 40 * 15 сек = 10 минут максимум
+            max_attempts = 40 
             for attempt in range(max_attempts):
-                time.sleep(15)
+                time.sleep(20) # Увеличим интервал до 20 сек
                 pr = requests.get(poll_url, headers=headers, timeout=30)
                 if pr.status_code == 200:
                     status_data = pr.json()
                     status = status_data.get('status', '').lower()
-                    print(f"   [{attempt+1}] Статус видео: {status}")
+                    print(f"   [{attempt+1}] Статус видео: {status}", flush=True)
                     
                     if status in ['succeeded', 'completed', 'finished']:
-                        v_url = status_data.get('data', [{}])[0].get('url')
+                        data_obj = status_data.get('data', [])
+                        if isinstance(data_obj, list) and len(data_obj) > 0:
+                            v_url = data_obj[0].get('url')
+                        elif isinstance(data_obj, dict):
+                            v_url = data_obj.get('url')
+                        else:
+                            v_url = status_data.get('url') # fallback
+
                         if v_url:
-                            print(f"✅ ВИДЕО ГОТОВО: {v_url}")
+                            print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
                             return v_url
                     elif status in ['failed', 'error', 'canceled']:
-                        print(f"❌ Генерация видео провалилась: {status_data}")
+                        print(f"❌ Генерация видео провалилась: {status_data}", flush=True)
                         return None
                 else:
-                    print(f"⚠️ Ошибка опроса ({pr.status_code}): {pr.text[:200]}")
+                    print(f"⚠️ Ошибка опроса ({pr.status_code}): {pr.text[:200]}", flush=True)
             
-            print("🛑 Превышено время ожидания видео.")
+            print("🛑 Превышено время ожидания видео.", flush=True)
         else:
-            print(f"⚠️ Ошибка API Kie.ai Video ({r.status_code}): {r.text[:300]}")
+            print(f"⚠️ Ошибка API Kie.ai Video ({r.status_code}): {r.text[:300]}", flush=True)
     except Exception as e:
-        print(f"⚠️ Ошибка при запросе видео: {e}")
+        print(f"⚠️ Ошибка при запросе видео: {e}", flush=True)
     return None
 
 def generate_image_gemini(prompt):

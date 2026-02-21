@@ -52,7 +52,7 @@ jobs:
           LAOZHANG_KEY: ${{ secrets.LAOZHANG_KEY }}
         run: |
           if [ "${{ github.event.inputs.mode }}" == "video" ]; then
-            python3 main.py --video
+            python3 -u main.py --video 2>&1 | tee bot_run.log
           else
-            python3 main.py
+            python3 -u main.py 2>&1 | tee bot_run.log
           fi
