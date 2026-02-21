@@ -245,6 +245,10 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                     pr = requests.get(f"{poll_base_url}?taskId={task_id}", headers=headers, timeout=30)
                     if pr.status_code == 200:
                         status_data = pr.json()
+                        # Каждые 5 попыток выводим полный ответ для отладки
+                        if attempt % 5 == 0:
+                            print(f"   [{attempt+1}] FULL RESPONSE: {json.dumps(status_data, ensure_ascii=False)[:500]}", flush=True)
+                        
                         # В recordInfo статус часто в data.status или status
                         data_part = status_data.get('data', {})
                         if not isinstance(data_part, dict): data_part = {}
