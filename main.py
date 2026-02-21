@@ -183,11 +183,15 @@ def get_ai_news():
     return None
 
 # --- ГЕНЕРАЦИЯ ИЗОБРАЖЕНИЙ ЧЕРЕЗ GEMINI ---
-def generate_video_kie(prompt, model="sora-2", duration=10, size="720p"):
+def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="landscape"):
     """Генерирует видео через Kie.ai (Sora 2)"""
     if not KIE_KEY:
         print("❌ Ошибка: KIE_KEY не задан.", flush=True)
         return None
+    
+    # Регуляция модели: если передано просто 'sora-2', превращаем в 'sora-2-text-to-video'
+    if model == "sora-2":
+        model = "sora-2-text-to-video"
     
     print(f"🎬 Kie.ai Video ({model}) начинает генерацию (Цель: {duration} сек, {size})...", flush=True)
     url = "https://api.kie.ai/v1/video/generations"
@@ -196,11 +200,15 @@ def generate_video_kie(prompt, model="sora-2", duration=10, size="720p"):
         "Content-Type": "application/json"
     }
     
+    # ВАЖНО: Новая структура согласно документации
     payload = {
         "model": model,
-        "prompt": prompt,
-        "duration": duration,
-        "size": size
+        "input": {
+            "prompt": prompt,
+            "n_frames": str(duration), # Для Sora-2 это '10' или '15'
+            "aspect_ratio": size,      # 'landscape', 'portrait', 'square'
+            "remove_watermark": True
+        }
     }
     
     try:
@@ -208,58 +216,65 @@ def generate_video_kie(prompt, model="sora-2", duration=10, size="720p"):
         print(f"📡 API Response Status: {r.status_code}", flush=True)
         try:
             res_data = r.json()
-            print(f"📦 API Response Data: {json.dumps(res_data, indent=2)}", flush=True)
+            # Для отладки печатаем ответ, но аккуратно
+            print(f"📦 API Response Message: {res_data.get('message', 'No message')}", flush=True)
         except:
-            print(f"📦 API Raw Response: {r.text}", flush=True)
+            print(f"📦 API Raw Response: {r.text[:500]}", flush=True)
             return None
 
         if r.status_code == 200:
             task_id = res_data.get('id') or res_data.get('task_id')
             
             if not task_id:
-                # Вдруг вернул ссылку сразу
+                # Проверка data[0].url
                 data_list = res_data.get('data', [])
-                if data_list and data_list[0].get('url'):
-                    return data_list[0]['url']
-                print("⚠️ Task ID not found in response.", flush=True)
+                if isinstance(data_list, list) and len(data_list) > 0:
+                    url_val = data_list[0].get('url')
+                    if url_val: return url_val
+                print(f"⚠️ Task ID not found. Full Data: {res_data}", flush=True)
                 return None
             
             print(f"⏳ Видео в очереди (Task ID: {task_id}). Ожидание...", flush=True)
             
-            # Поллинг (опрос готовности)
+            # Поллинг
             poll_url = f"https://api.kie.ai/v1/video/generations/{task_id}"
-            max_attempts = 40 
+            max_attempts = 50 
             for attempt in range(max_attempts):
-                time.sleep(20) # Увеличим интервал до 20 сек
-                pr = requests.get(poll_url, headers=headers, timeout=30)
-                if pr.status_code == 200:
-                    status_data = pr.json()
-                    status = status_data.get('status', '').lower()
-                    print(f"   [{attempt+1}] Статус видео: {status}", flush=True)
-                    
-                    if status in ['succeeded', 'completed', 'finished']:
-                        data_obj = status_data.get('data', [])
-                        if isinstance(data_obj, list) and len(data_obj) > 0:
-                            v_url = data_obj[0].get('url')
-                        elif isinstance(data_obj, dict):
-                            v_url = data_obj.get('url')
-                        else:
-                            v_url = status_data.get('url') # fallback
+                time.sleep(20)
+                try:
+                    pr = requests.get(poll_url, headers=headers, timeout=30)
+                    if pr.status_code == 200:
+                        status_data = pr.json()
+                        status = status_data.get('status', '').lower()
+                        print(f"   [{attempt+1}] Статус: {status}", flush=True)
+                        
+                        if status in ['succeeded', 'completed', 'finished']:
+                            # Поиск URL в ответе (может быть в data[0].url или в url)
+                            v_url = None
+                            data_obj = status_data.get('data', [])
+                            if isinstance(data_obj, list) and len(data_obj) > 0:
+                                v_url = data_obj[0].get('url')
+                            elif isinstance(data_obj, dict):
+                                v_url = data_obj.get('url')
+                            
+                            if not v_url: v_url = status_data.get('url')
 
-                        if v_url:
-                            print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
-                            return v_url
-                    elif status in ['failed', 'error', 'canceled']:
-                        print(f"❌ Генерация видео провалилась: {status_data}", flush=True)
-                        return None
-                else:
-                    print(f"⚠️ Ошибка опроса ({pr.status_code}): {pr.text[:200]}", flush=True)
+                            if v_url:
+                                print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
+                                return v_url
+                        elif status in ['failed', 'error', 'canceled']:
+                            print(f"❌ Провал: {status_data}", flush=True)
+                            return None
+                    else:
+                        print(f"⚠️ Ошибка опроса ({pr.status_code}): {pr.text[:200]}", flush=True)
+                except Exception as e:
+                    print(f"⚠️ Ошибка сети при опросе: {e}", flush=True)
             
-            print("🛑 Превышено время ожидания видео.", flush=True)
+            print("🛑 Превышено время ожидания.", flush=True)
         else:
-            print(f"⚠️ Ошибка API Kie.ai Video ({r.status_code}): {r.text[:300]}", flush=True)
+            print(f"⚠️ Ошибка API ({r.status_code}): {r.text[:500]}", flush=True)
     except Exception as e:
-        print(f"⚠️ Ошибка при запросе видео: {e}", flush=True)
+        print(f"⚠️ Ошибка при запросе: {e}", flush=True)
     return None
 
 def generate_image_gemini(prompt):
@@ -497,7 +512,7 @@ def run_final():
         print(f"🎬 РЕЖИМ ВИДЕО АКТИВИРОВАН! Модель: Sora 2")
         # Для видео добавим приписку о реализме, как просил пользователь
         video_prompt = f"{t}, high realism, cinematic style, detailed, 4k"
-        video_url = generate_video_kie(video_prompt, model="sora-2", duration=10, size="720p")
+        video_url = generate_video_kie(video_prompt, model="sora-2-text-to-video", duration=10, size="landscape")
         if not video_url:
             raise Exception("🎬 CRITICAL: Video generation failed and fallback is disabled.")
     
