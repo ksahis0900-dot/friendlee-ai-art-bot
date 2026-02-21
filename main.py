@@ -586,22 +586,22 @@ def run_final():
     # 2. Если Groq молчит -> OpenRouter
     if not raw:
         print("⚠️ Groq молчит. Пробую OpenRouter...")
-        raw = generate_text_openrouter(t)
+        raw = generate_text_openrouter(t_prompt)
 
     # 3. Если OpenRouter молчит -> Gemini
     if not raw:
         print("⚠️ OpenRouter молчит. Пробую Gemini...")
-        raw = generate_text(f"Post JSON about {t} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}}")
+        raw = generate_text(f"Post JSON about {t_prompt} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}}")
     
     # 4. Если Gemini молчит -> Kie.ai
     if not raw:
         print("⚠️ Gemini молчит. Пробую Kie.ai...")
-        raw = generate_text_kie(t)
+        raw = generate_text_kie(t_prompt)
         
     # 5. Если и Kie молчит -> Pollinations
     if not raw:
         print("⚠️ Все молчат. Пробую Pollinations AI...")
-        raw = generate_text_pollinations(t)
+        raw = generate_text_pollinations(t_prompt)
 
     # ПАРСИНГ И FALLBACK
     title, concept, tags = None, None, None
