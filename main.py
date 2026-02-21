@@ -245,36 +245,44 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                     pr = requests.get(f"{poll_base_url}?taskId={task_id}", headers=headers, timeout=30)
                     if pr.status_code == 200:
                         status_data = pr.json()
-                        # Каждые 5 попыток выводим полный ответ для отладки
-                        if attempt % 5 == 0:
-                            print(f"   [{attempt+1}] FULL RESPONSE: {json.dumps(status_data, ensure_ascii=False)[:500]}", flush=True)
-                        
-                        # В recordInfo статус часто в data.status или status
                         data_part = status_data.get('data', {})
                         if not isinstance(data_part, dict): data_part = {}
                         
-                        status = (status_data.get('status') or data_part.get('status') or '').lower()
-                        print(f"   [{attempt+1}] Статус: {status}", flush=True)
+                        # Kie.ai recordInfo возвращает resultJson (строка JSON внутри JSON)
+                        result_json_str = data_part.get('resultJson', '')
+                        fail_code = data_part.get('failCode', '')
                         
-                        if status in ['succeeded', 'completed', 'finished', 'success']:
-                            v_url = data_part.get('url') or status_data.get('url')
-                            # Иногда url лежит в data.data[0].url (S3 ссылка)
-                            if not v_url and 'data' in data_part:
-                                if isinstance(data_part['data'], list) and len(data_part['data']) > 0:
-                                    v_url = data_part['data'][0].get('url')
-
-                            if v_url:
-                                print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
-                                return v_url
-                        elif status in ['failed', 'error', 'canceled']:
-                            print(f"❌ Провал: {status_data}", flush=True)
+                        # Логируем каждые 10 попыток
+                        if attempt % 10 == 0:
+                            print(f"   [{attempt+1}] resultJson len={len(result_json_str)}, failCode={fail_code}", flush=True)
+                        else:
+                            print(f"   [{attempt+1}] ожидание... (resultJson={bool(result_json_str)})", flush=True)
+                        
+                        # Если есть failCode — провал
+                        if fail_code and str(fail_code) not in ['', '0', 'None']:
+                            print(f"❌ Провал (failCode={fail_code}): {data_part}", flush=True)
                             return None
+                        
+                        # Если resultJson не пустой — парсим
+                        if result_json_str:
+                            try:
+                                result_obj = json.loads(result_json_str)
+                                result_urls = result_obj.get('resultUrls', [])
+                                print(f"   [{attempt+1}] Найдено URL: {len(result_urls)}", flush=True)
+                                
+                                if result_urls and len(result_urls) > 0:
+                                    v_url = result_urls[0]
+                                    print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
+                                    return v_url
+                            except json.JSONDecodeError as je:
+                                print(f"   [{attempt+1}] Не удалось распарсить resultJson: {je}", flush=True)
                     else:
                         print(f"⚠️ Ошибка опроса ({pr.status_code})", flush=True)
                 except Exception as e:
                     print(f"⚠️ Ошибка сети: {e}", flush=True)
             
             print("🛑 Превышено время ожидания.", flush=True)
+
         else:
             print(f"⚠️ Ошибка API ({r.status_code}): {r.text[:500]}", flush=True)
     except Exception as e:
