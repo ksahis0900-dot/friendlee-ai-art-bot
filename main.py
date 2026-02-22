@@ -179,20 +179,23 @@ def generate_video_kie(prompt, duration=5):
         return None
 
     try:
-        endpoints = ["https://api.kie.ai/v1/models", "https://api.kie.ai/api/v1/models"]
-        for ep in endpoints:
-            r_models = requests.get(ep, headers={"Authorization": f"Bearer {KIE_KEY}"}, timeout=10)
-            if r_models.status_code == 200:
-                mdata = r_models.json()
-                if 'data' in mdata:
-                    all_ids = [m.get('id', '') for m in mdata['data'] if isinstance(m, dict)]
-                    vid_kw = ["kling", "veo", "wan", "hailuo", "sora", "minimax", "runway", "luma", "video", "seedance"]
-                    vids = [mid for mid in all_ids if any(k in mid.lower() for k in vid_kw)]
-                    print(f"🔍 Найдены потенциальные видео-модели на {ep}: {vids}", flush=True)
-                else:
-                    print(f"⚠️ Нет 'data' в ответе {ep}: {str(mdata)[:200]}", flush=True)
-            else:
-                print(f"⚠️ Ошибка от {ep}: {r_models.status_code} {r_models.text[:200]}", flush=True)
+        test_endpoints = [
+            ("veo3", "https://api.kie.ai/api/v1/veo3/generate", {"model": "veo3_fast", "prompt": "a dog"}),
+            ("veo3_v", "https://api.kie.ai/api/v1/veo/generate", {"model": "veo3", "prompt": "a dog"}),
+            ("runway", "https://api.kie.ai/api/v1/runway/generate", {"prompt": "a dog"}),
+            ("luma", "https://api.kie.ai/api/v1/luma/generate", {"prompt": "a dog"}),
+            ("kling", "https://api.kie.ai/api/v1/kling/generate", {"prompt": "a dog"}),
+            ("sora2", "https://api.kie.ai/api/v1/sora2/generate", {"prompt": "a dog"}),
+            ("wan", "https://api.kie.ai/api/v1/wan/generate", {"prompt": "a dog"}),
+            ("hailuo", "https://api.kie.ai/api/v1/hailuo/generate", {"prompt": "a dog"}),
+        ]
+        print("🔍 PROBING SPECIFIC VIDEO ENDPOINTS...", flush=True)
+        for name, ep, pl in test_endpoints:
+            try:
+                rx = requests.post(ep, headers={"Authorization": f"Bearer {KIE_KEY}", "Content-Type": "application/json"}, json=pl, timeout=10)
+                print(f"   [{name}] {rx.status_code} {rx.text[:200]}", flush=True)
+            except Exception as ex:
+                print(f"   [{name}] Error: {ex}", flush=True)
     except Exception as e:
         print(f"⚠️ Exception fetching models: {e}", flush=True)
 
