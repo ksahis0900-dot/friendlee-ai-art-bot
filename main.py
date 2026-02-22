@@ -510,34 +510,37 @@ def run_final():
             "Snowflake Architecture", "Cell Division as Art",
             "Virus as a Crystal Spider", "DNA Strand as a Neon Staircase",
         ],
+        "Classic Masterpieces": [
+            "Mona Lisa in alternative reality", "Starry Night over a modern city",
+            "The Scream in a digital void", "Girl with a Pearl Earring in steampunk gear",
+            "The Garden of Earthly Delights by Bosch", "Creation of Adam with robot hands",
+            "The Birth of Venus in the ocean of stars", "Great Wave off Kanagawa in 3D",
+            "Van Gogh style self-portrait of a robot", "Guernica in futuristic style",
+        ],
+        "World Cultures": [
+            "Egyptian Pharaoh in the underworld", "Shogun in a zen garden",
+            "Indian Maharaja in a palace of mirrors", "Aztec Priest on a pyramid",
+            "Viking Longship in the aurora borealis", "African Queen with golden ornaments",
+            "Tribal Mask with glowing eyes", "Chinese Dragon in the clouds",
+            "Cossack in the snowy steppe", "Japanese Tea Ceremony in autumn",
+        ],
     }
     
-    styles = [
-        "Unreal Engine 5 Render", "Octane Render", "Redshift Render", "V-Ray", "Blender Cycles",
-        "Hyper-realistic Photo", "8k Raw Photo", "Macro Lens Detail", "Long Exposure", "Tilt-Shift Photo",
-        "DSLR Portrait", "Film Noir Photography", "Infrared Photography", "Double Exposure Photo",
-        "Cinematic Shot", "Anamorphic Lens Flare", "IMAX Wide Angle", "Drone Aerial View",
-        "Cyber-Renaissance", "Biopunk", "Solarpunk", "Steampunk Digital", "Dieselpunk Art",
-        "Vaporwave", "Synthwave", "Gothic Futurism", "Baroque Sci-Fi", 
-        "Rococo Cyberpunk", "Pop Art Neon", "Glitch Art", "Bauhaus Style", "Voxel Art",
-        "Art Nouveau Digital", "Ukiyo-e Modern", "Afrofuturism", "Stained Glass Art",
-        "Low Poly Art", "Pixel Art HD", "Watercolor Digital", "Oil Painting Realistic",
-        "Chalk Art Photorealistic", "Comic Book Style", "Anime Cinematic", "Studio Ghibli Inspired",
-        "Dark Fantasy Illustration", "Concept Art for AAA Game", "Ethereal Oil Painting",
-        "Cubism Modern", "Impressionism Digital", "Surrealism Dali Style", "Pencil Sketch Detailed",
-    ]
+    # --- ГРУППИРОВКА СТИЛЕЙ ДЛЯ РАЗНООБРАЗИЯ ---
+    style_groups = {
+        "Classic": ["Oil Painting Realistic", "Ethereal Oil Painting", "Impressionism Digital", "Baroque Art", "Renaissance Style", "Watercolor Digital", "Ukiyo-e Modern", "Pencil Sketch Detailed"],
+        "Modern/Digital": ["Unreal Engine 5 Render", "Blender Cycles", "Octane Render", "Voxel Art", "Pixel Art HD", "Low Poly Art", "Minimalist Vector Art", "Double Exposure Photo"],
+        "Cinematic": ["Cinematic Shot", "IMAX Wide Angle", "Film Noir Photography", "DSLR Portrait", "Anamorphic Lens Flare", "Tilt-Shift Photo", "Long Exposure"],
+        "Futuristic/Cyber": ["Cyber-Renaissance", "Biopunk", "Solarpunk", "Steampunk Digital", "Vaporwave", "Synthwave", "Gothic Futurism", "Rococo Cyberpunk", "Glitch Art"],
+        "Fantasy/Surreal": ["Dark Fantasy Illustration", "Concept Art for AAA Game", "Surrealism Dali Style", "Magic realism", "Storybook Illustration", "Anime Cinematic", "Studio Ghibli Inspired"]
+    }
     
-    lighting = [
-        "Volumetric Lighting", "Bioluminescence", "Neon Glow", "God Rays", "Rim Lighting", 
-        "Cinematic Color Grading", "Dark Contrast", "Pastel Soft Light", "Cyber-Blue Bloom", 
-        "Golden Hour", "Midnight Rain Reflections", "Cyber-Green Haze", "Rembrandt Lighting",
-        "Northern Lights Aurora", "Candlelight Warm Glow", "Laser Grid Light",
-        "Sunset Silhouette", "Moonlight Silver Glow", "Neon Pink and Blue Split",
-        "Underwater Caustics", "Firefly Bokeh", "Studio Dramatic Spotlight",
-        "Holographic Rainbow Refraction", "Eclipse Shadow Light", "Lightning Strike Flash",
-        "Fluorescent Tube Light", "Street Light Shadows", "Optical Fiber Glow",
-    ]
-    
+    light_groups = {
+        "Natural": ["Golden Hour", "God Rays", "Sunset Silhouette", "Moonlight Silver Glow", "Candlelight Warm Glow", "Morning Fog Light", "Soft Pastel Light"],
+        "Cyber/Neon": ["Neon Glow", "Cyber-Blue Bloom", "Cyber-Green Haze", "Neon Pink and Blue Split", "Laser Grid Light", "Bioluminescence", "Fluorescent Tube Light"],
+        "Dramatic": ["Volumetric Lighting", "Dark Contrast", "Rembrandt Lighting", "Rim Lighting", "Studio Dramatic Spotlight", "Eclipse Shadow Light", "Lightning Strike Flash"]
+    }
+
     contexts = [
         "in heavy rain at night", "standing on a cliff edge", 
         "surrounded by floating crystals", "in a neon-lit alleyway", 
@@ -556,25 +559,45 @@ def run_final():
         "in a library of burning books", "at a crossroads between dimensions",
         "in a forest of mirrors", "during a meteor shower", "inside a drop of dew",
     ]
-    
+
     # ВЫБОР ТЕМЫ
     if IS_SUNDAY_VIDEO:
         s = random.choice(humor_subjects)
         t = f"Hyper-realistic and humorous video of {s}, positive vibe, vivid colors, morning inspiration"
         chosen_category = "Sunday Humor"
     else:
+        # Случайная категория из мега-сборника
         chosen_category = random.choice(list(categories.keys()))
         s = random.choice(categories[chosen_category])
-        st1 = random.choice(styles)
-        st2 = random.choice(styles)
-        while st2 == st1: st2 = random.choice(styles)
-        l = random.choice(lighting)
+        
+        # Умный выбор стиля в зависимости от категории, чтобы не было одного неона
+        if chosen_category in ["Cyberpunk & Sci-Fi", "Space & Cosmos"]:
+            possible_styles = style_groups["Futuristic/Cyber"] + style_groups["Modern/Digital"] + style_groups["Cinematic"]
+            possible_lights = light_groups["Cyber/Neon"] + light_groups["Dramatic"]
+        elif chosen_category in ["Fantasy & Myth", "Abstract & Surreal", "Horror & Dark"]:
+            possible_styles = style_groups["Fantasy/Surreal"] + style_groups["Classic"] + style_groups["Cinematic"]
+            possible_lights = light_groups["Dramatic"] + light_groups["Natural"] + ["Bioluminescence"]
+        elif chosen_category in ["Nature & Bio-Mech", "Underwater World", "Micro World"]:
+            possible_styles = style_groups["Modern/Digital"] + style_groups["Classic"] + style_groups["Cinematic"]
+            possible_lights = light_groups["Natural"] + ["Bioluminescence", "Firefly Bokeh", "Underwater Caustics"]
+        else: # Portraits, Food, Music, Fashion, Architecture
+            possible_styles = style_groups["Classic"] + style_groups["Modern/Digital"] + style_groups["Cinematic"] + style_groups["Fantasy/Surreal"]
+            possible_lights = light_groups["Natural"] + light_groups["Dramatic"]
+
+        st1 = random.choice(possible_styles)
+        st2 = random.choice(possible_styles)
+        while st2 == st1: st2 = random.choice(possible_styles)
+        
+        l = random.choice(possible_lights)
         c = random.choice(contexts)
+        
         qualifiers = "masterpiece, 8k, highly detailed, photorealistic, intricate textures, masterpiece composition, vivid colors, professionally rendered"
         t = f"{st1} and {st2} mix style of {s} {c}, with {l}, {qualifiers}"
     
     print(f"🎲 Категория: [{chosen_category}]")
-    print(f"🎲 Сгенерирована тема (God Mode V4.0): {t}")
+    print(f"🎲 Стили: [{st1} + {st2}]")
+    print(f"🎲 Свет: [{l}]")
+    print(f"🎲 Сгенерирована тема (Diversity Mode V1.0): {t}")
 
     # ЕСЛИ ВОСКРЕСЕНЬЕ - МЕНЯЕМ ПРОМПТ ДЛЯ ТЕКСТА
     if IS_SUNDAY_VIDEO:
