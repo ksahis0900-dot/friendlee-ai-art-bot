@@ -347,6 +347,15 @@ def run_final():
     TEST_MODE = "--test" in sys.argv
     VIDEO_MODE = "--video" in sys.argv
     FORCE_SOURCE = None
+    CUSTOM_PROMPT = None
+    
+    if "--custom-prompt" in sys.argv:
+        try:
+            idx = sys.argv.index("--custom-prompt")
+            CUSTOM_PROMPT = sys.argv[idx + 1]
+        except:
+            pass
+
 
 
     # ПРОВЕРКА НА АВТО-ВИДЕО (Воскресенье 22:00 МСК = 19:00 UTC)
@@ -614,7 +623,13 @@ def run_final():
         
         qualifiers = "masterpiece, 8k, highly detailed, photorealistic, intricate textures, masterpiece composition, vivid colors, professionally rendered"
         t = f"{st1} and {st2} mix style of {s} {c}, with {l}, {qualifiers}"
-    
+
+    if CUSTOM_PROMPT:
+        t = CUSTOM_PROMPT
+        chosen_category = "Custom Request"
+        st1, st2, l = "Custom", "Custom", "Custom"
+        s = "Custom Subject"
+
     print(f"🎲 Категория: [{chosen_category}]")
     print(f"🎲 Стили: [{st1} + {st2}]")
     print(f"🎲 Свет: [{l}]")

@@ -16,6 +16,10 @@ on:
         options:
           - art
           - video
+      custom_prompt:
+        description: 'Custom prompt for image generation (optional)'
+        required: false
+        default: ''
 
 jobs:
   post_art:
@@ -61,6 +65,9 @@ jobs:
           if [ "${{ github.event.inputs.mode }}" == "video" ] || ([ "$DOW" -eq 7 ] && [ "$HOUR" -ge 18 ] && [ "$HOUR" -le 20 ]); then
             echo "🎬 Running Video Generation..."
             python3 -u main.py --video 2>&1 | tee bot_run.log
+          elif [ -n "${{ github.event.inputs.custom_prompt }}" ]; then
+            echo "🖌️ Running Art Generation with Custom Prompt..."
+            python3 -u main.py --custom-prompt "${{ github.event.inputs.custom_prompt }}" 2>&1 | tee bot_run.log
           else
             echo "🖌️ Running Art Generation..."
             python3 -u main.py 2>&1 | tee bot_run.log
