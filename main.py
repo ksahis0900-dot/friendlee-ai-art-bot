@@ -130,7 +130,7 @@ def generate_text_kie(theme):
     if not KIE_KEY: return None
     print("🧠 Kie.ai (DeepSeek) пишет текст...")
     # Используем актуальный эндпоинт для чата
-    url = "https://api.kie.ai/v1/chat/completions" 
+    url = "https://api.kie.ai/api/v1/chat/completions" 
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
         "Content-Type": "application/json"
@@ -669,6 +669,13 @@ def run_final():
                 target = f"-{target}"
         else:
             target = f"@{target}"
+    
+    # ПРИНТ ДЛЯ ОТЛАДКИ (Скрываем середину для безопасности, если это длинный ID)
+    if len(target) > 8:
+        masked_target = target[:4] + "..." + target[-4:]
+    else:
+        masked_target = target
+    print(f"🎯 ЦЕЛЕВОЙ КАНАЛ: {masked_target}")
 
     video_url = None
     if VIDEO_MODE:
@@ -745,7 +752,11 @@ def run_final():
                     if r.status_code == 200:
                         res = r.json()
                         task_id = res.get('taskId') or res.get('id') or (res.get('data') or {}).get('taskId')
-                        if task_id:
+                    else:
+                        print(f"⚠️ Kie.ai Job Error {r.status_code}: {r.text[:200]}")
+                        task_id = None
+                        
+                    if task_id:
                             # Мини-полинг для картинки (обычно быстрее видео)
                             for _ in range(15):
                                 time.sleep(10)
