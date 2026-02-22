@@ -142,37 +142,37 @@ def generate_text_kie(theme):
         f"Будь эмоциональным и используй много эмодзи!"
     )
     
-    payload = {
-        "model": "gpt-4o", # Поменяли с deepseek-v3 на более стабильный gpt-4o
-        "messages": [
-            {"role": "system", "content": "You are a creative SMM manager for an AI Art channel. Always respond in valid JSON format."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.8
-    }
+    # Список моделей для перебора в случае ошибки
+    models_to_try = ["gemini-3-flash", "gemini-2.5-flash", "gpt-4o", "deepseek-v3"]
     
     r = None
-    for url in endpoints:
-        try:
-            r = requests.post(url, json=payload, headers=headers, timeout=60)
-            if r.status_code != 404: break
-        except: pass
+    for m_name in models_to_try:
+        payload = {
+            "model": m_name,
+            "messages": [
+                {"role": "system", "content": "You are a creative SMM manager for an AI Art channel. Always respond in valid JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.8
+        }
         
-    try:
-        if r and r.status_code == 200:
-            res_json = r.json()
-            # Добавим проверку структуры ответа
-            if 'choices' in res_json and len(res_json['choices']) > 0:
-                return res_json['choices'][0]['message']['content']
-            else:
-                print(f"⚠️ Kie.ai Unexpected JSON: {res_json}")
-                return None
-        else:
-            print(f"⚠️ Kie.ai Error {r.status_code}: {r.text}")
-            return None
-    except Exception as e:
-        print(f"⚠️ Kie.ai Exception: {e}")
-        return None
+        for url in endpoints:
+            try:
+                print(f"   👉 Пробуем модель {m_name} на {url}...")
+                r = requests.post(url, json=payload, headers=headers, timeout=60)
+                if r.status_code == 200:
+                    res_json = r.json()
+                    if 'choices' in res_json and len(res_json['choices']) > 0:
+                        return res_json['choices'][0]['message']['content']
+                elif r.status_code == 404:
+                    continue # Пробуем другой URL
+                else:
+                    # Если ошибка не 404, возможно модель не найдена (500), пробуем следующую модель
+                    print(f"      ⚠️ Ошибка {r.status_code}: {r.text[:100]}")
+                    break 
+            except: pass
+            
+    return None
 
 # --- УДАЛЕНО: Reddit и Новости ИИ больше не используются ---
 
@@ -184,8 +184,8 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
         return None
     
     # Регуляция модели
-    if model == "sora-2":
-        model = "sora-2-text-to-video"
+    if model in ["sora-2", "sora-2-text-to-video"]:
+        model = "google-veo-3.1" # Veo 3.1 - актуальный флагман Kie.ai
     
     print(f"🎬 Kie.ai Video ({model}) создание задачи...", flush=True)
     # Исправленный эндпоинт согласно документации
@@ -709,9 +709,9 @@ def run_final():
     # СПИСОК МОДЕЛЕЙ (В порядке приоритета: Ключи -> Бесплатные Про -> Бесплатные Обычные -> Резерв)
     IMAGE_MODELS = [
         # --- TIER 1: KIE.AI (MAIN PRIORITY) ---
+        {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_image", "model": "nano-banana-pro", "key": KIE_KEY},
+        {"name": "Kie.ai (GPT Image 1.5)", "provider": "kie_image", "model": "gpt-image-1.5", "key": KIE_KEY},
         {"name": "Kie.ai (Flux Kontext)", "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
-        {"name": "Kie.ai (Flux Pro)", "provider": "kie_image", "model": "flux-1-pro", "key": KIE_KEY},
-        {"name": "Kie.ai (Flux Schnell)", "provider": "kie_image", "model": "flux-1-schnell", "key": KIE_KEY},
         {"name": "Kie.ai (SDXL)", "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
 
         # --- TIER 2: OTHER PAID KEYS (Backup) ---
