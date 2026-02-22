@@ -143,8 +143,11 @@ def generate_text_kie(theme):
     )
     
     payload = {
-        "model": "deepseek-v3", # Или "chatgpt-4o-latest", "gpt-4o"
-        "messages": [{"role": "user", "content": prompt}],
+        "model": "deepseek-v3",
+        "messages": [
+            {"role": "system", "content": "You are a creative SMM manager for an AI Art channel. Always respond in valid JSON format."},
+            {"role": "user", "content": prompt}
+        ],
         "temperature": 0.8
     }
     
@@ -690,6 +693,7 @@ def run_final():
         # --- TIER 1: KIE.AI (MAIN PRIORITY) ---
         {"name": "Kie.ai (Flux Kontext)", "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
         {"name": "Kie.ai (Flux Pro)", "provider": "kie_image", "model": "flux-1-pro", "key": KIE_KEY},
+        {"name": "Kie.ai (Flux Schnell)", "provider": "kie_image", "model": "flux-1-schnell", "key": KIE_KEY},
         {"name": "Kie.ai (SDXL)", "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
 
         # --- TIER 2: OTHER PAID KEYS (Backup) ---
@@ -731,8 +735,7 @@ def run_final():
         try:
             # --- PROVIDER LOGIC ---
             if p_type == "kie_image":
-                # Переключаем на logic создания задачи (аналогично видео), так как старый эндпоинт 404
-                # Или пробуем /api/v1/runway/generate для других моделей
+                print(f"🎨 Kie.ai создание задачи ({model_cfg['model']})...")
                 try:
                     payload = {
                         "model": model_cfg['model'],
@@ -744,30 +747,49 @@ def run_final():
                     }
                     r = requests.post("https://api.kie.ai/api/v1/jobs/createTask", 
                                       json=payload, headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=60)
+                    
                     if r.status_code == 200:
                         res = r.json()
-                        task_id = res.get('taskId') or res.get('id') or (res.get('data') or {}).get('taskId')
+                        # Универсальный поиск taskId
+                        task_id = res.get('taskId') or res.get('id')
+                        if not task_id and 'data' in res:
+                            d = res['data']
+                            if isinstance(d, dict): task_id = d.get('taskId') or d.get('id')
+                            elif isinstance(d, str): task_id = d
                     else:
                         print(f"⚠️ Kie.ai Job Error {r.status_code}: {r.text[:200]}")
                         task_id = None
                         
                     if task_id:
-                            # Мини-полинг для картинки (обычно быстрее видео)
-                            for _ in range(15):
-                                time.sleep(10)
-                                pr = requests.get(f"https://api.kie.ai/api/v1/jobs/recordInfo?taskId={task_id}", 
-                                                 headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=30)
-                                if pr.status_code == 200:
-                                    s_data = pr.json().get('data', {})
-                                    res_json_str = s_data.get('resultJson', '')
-                                    if res_json_str:
+                        print(f"⏳ Картинка в очереди (ID: {task_id}). Ожидаем...")
+                        # Мини-полинг для картинки (быстрее видео)
+                        for attempt in range(20):
+                            time.sleep(8)
+                            pr = requests.get(f"https://api.kie.ai/api/v1/jobs/recordInfo?taskId={task_id}", 
+                                              headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=30)
+                            if pr.status_code == 200:
+                                s_data = pr.json().get('data', {})
+                                if not isinstance(s_data, dict): s_data = {}
+                                
+                                # Проверка провала
+                                if s_data.get('failCode') and str(s_data.get('failCode')) not in ['0', 'None', '']:
+                                    print(f"❌ Kie.ai Image Failed (failCode={s_data.get('failCode')})")
+                                    break
+                                    
+                                res_json_str = s_data.get('resultJson', '')
+                                if res_json_str:
+                                    try:
                                         res_obj = json.loads(res_json_str)
                                         urls = res_obj.get('resultUrls', [])
                                         if urls:
                                             image_url = urls[0]
+                                            print(f"✅ Kie.ai Image OK: {image_url}")
                                             break
+                                    except: pass
+                            
+                        if image_url: break # Выходим из цикла IMAGE_MODELS
                 except Exception as ex:
-                    print(f"⚠️ Kie.ai Image Error: {ex}")
+                    print(f"⚠️ Kie.ai Image Exception: {ex}")
 
             elif p_type == "laozhang":
                 r = requests.post("https://api.laozhang.ai/v1/images/generations",
