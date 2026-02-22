@@ -591,6 +591,8 @@ def run_final():
     ]
 
     # ВЫБОР ТЕМЫ
+    st1, st2, l, c = "Default", "Default", "Default", "Default"
+    
     if IS_SUNDAY_VIDEO:
         s = random.choice(humor_subjects)
         t = f"Hyper-realistic and humorous video of {s}, positive vibe, vivid colors, morning inspiration"
