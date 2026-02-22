@@ -1,10 +1,10 @@
-name: FrieNDLee Art Bot
+name: Art Bot Scheduled 🎨
 
 on:
   schedule:
     # АРТ: 9:00, 14:00, 19:00, 21:00 МСК (6, 11, 16, 18 UTC)
-    # ВИДЕО: Воскресенье 22:00 МСК (19 UTC)
     - cron: '0 6,11,16,18 * * *'
+    # ВИДЕО: Воскресенье 22:00 МСК (19 UTC)
     - cron: '0 19 * * 0'
   workflow_dispatch:
     inputs:
@@ -32,8 +32,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: List files
-        run: ls -la
+      - name: Runner Time Info
+        run: |
+          echo "Date: $(date)"
+          echo "DOW: $(date +%u) (1-Mon, 7-Sun)"
+          echo "Hour: $(date +%H)"
 
       - name: Run Art Bot
         env:
@@ -49,9 +52,16 @@ jobs:
           GROQ_KEY: ${{ secrets.GROQ_KEY }}
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
           LAOZHANG_KEY: ${{ secrets.LAOZHANG_KEY }}
+          YOUR_SIGNATURE: "@fRieNDLee34"
         run: |
-          if [ "${{ github.event.inputs.mode }}" == "video" ]; then
+          DOW=$(date +%u)
+          HOUR=$(date +%H)
+          
+          # Если это ручной запуск ВИДЕО или воскресенье 19:00 UTC (22:00 MSK)
+          if [ "${{ github.event.inputs.mode }}" == "video" ] || ([ "$DOW" -eq 7 ] && [ "$HOUR" -ge 18 ] && [ "$HOUR" -le 20 ]); then
+            echo "🎬 Running Video Generation..."
             python3 -u main.py --video 2>&1 | tee bot_run.log
           else
+            echo "🖌️ Running Art Generation..."
             python3 -u main.py 2>&1 | tee bot_run.log
           fi
