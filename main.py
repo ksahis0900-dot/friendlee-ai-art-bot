@@ -206,10 +206,11 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
     models_to_try = [model]
     if model in ["sora-2", "sora-2-text-to-video"]:
         models_to_try = [
-            "google-veo-3.1", "google-veo-3.1-fast", 
-            "kling-v1", "kling-v1.5", 
-            "sora-1", "sora-2",
-            "cogvideo-5b", "luma-dream-machine"
+            # В документации иногда sora-2, а реально бывает:
+            "kling-v1", "kling-v2", "kling-v2-1", "kling-v2-6",
+            "google-veo-v3.1", "google-veo-v3-1", "google-veo-3.1",
+            "wan-v2.1", "hailuo-v2.3", "seedance-v1.5-pro",
+            "sora-1", "sora-2", "cogvideo-5b", "luma-dream-machine"
         ]
     
     headers = {
@@ -237,6 +238,13 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                 r = requests.post(url, json=payload, headers=headers, timeout=60)
                 if r.status_code == 200:
                     data = r.json()
+                    # У Kie.ai может быть HTTP 200, но ошибка в теле: {"code": 422, "msg": "..."}
+                    if data.get('code') and data.get('code') != 0 and data.get('code') != 200:
+                        print(f"      [{current_model}] API Error {data.get('code')}: {data.get('msg')}", flush=True)
+                        if data.get('code') == 422:
+                            break # Пробуем следующую модель
+                        continue # Пробуем другой эндпоинт
+                        
                     # Защита от {"data": null}
                     data_part = data.get('data')
                     if not isinstance(data_part, dict): data_part = {}
@@ -244,8 +252,8 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                     if task_id:
                         print(f"✅ Задача создана ({current_model})! Task ID: {task_id}", flush=True)
                         return task_id
-                
-                print(f"      [{current_model}] {url} -> HTTP {r.status_code}: {r.text[:150]}", flush=True)
+                else:
+                    print(f"      [{current_model}] {url} -> HTTP {r.status_code}: {r.text[:100]}", flush=True)
                 
                 # Если 422, значит модель не та, пробуем следующую из списка моделей
                 if r.status_code == 422:
