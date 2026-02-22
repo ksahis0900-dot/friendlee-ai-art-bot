@@ -30,6 +30,25 @@ YOUR_SIGNATURE = os.environ.get('YOUR_SIGNATURE', "@fRieNDLee34")
 
 bot = telebot.TeleBot(TOKEN) if TOKEN else None
 
+HISTORY_FILE = "seen_subjects.txt"
+
+def get_history():
+    if not os.path.exists(HISTORY_FILE): return []
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            return [line.strip() for line in f.readlines() if line.strip()]
+    except: return []
+
+def save_to_history(subject):
+    history = get_history()
+    history.append(subject)
+    # Храним последние 500 записей
+    history = history[-500:]
+    try:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            f.write("\n".join(history))
+    except: pass
+
 import sys
 print(f"🛠️ DEBUG: sys.version: {sys.version}")
 print(f"🛠️ DEBUG: sys.argv: {sys.argv}")
@@ -380,7 +399,27 @@ def run_final():
         "A robot dog chasing a holographic bone and wagging its metallic tail", 
         "An astronaut playing golf on the moon with a rainbow trail ball",
         "A cheerful cloud raining colorful candies over a grey city", 
-        "A group of robots having a messy pillow fight in a high-tech lab"
+        "A group of robots having a messy pillow fight in a high-tech lab",
+        "A clumsy giraffe trying to use a treadmill",
+        "An owl who is addicted to energy drinks and has huge eyes",
+        "A squirrel trying to bury a giant pizza slice instead of a nut",
+        "A serious bulldog dressed as a ballerina in a pink tutu",
+        "A group of hamsters building a miniature cyberpunk city out of LEGO",
+        "A confused alien trying to use a toaster for the first time",
+        "A stylish ostrich wearing a tuxedo and acting as a VIP bodyguard",
+        "A robot vacuum cleaner rebelling and chasing a laser pointer like a cat",
+        "A tiny chameleon that accidentally turned into a disco ball pattern",
+        "A tired monster under the bed drinking chamomile tea to sleep",
+        "A T-Rex trying to make a bed and failing because of short arms",
+        "A group of pigeons having a formal business meeting on a park bench",
+        "A goldfish in a high-tech mech-suit walking on land to explore",
+        "A polar bear sliding down a rainbow like a water slide",
+        "A robot failing to flip a pancake and it lands on its head",
+        "A sophisticated pig playing grand piano in a jazz club",
+        "A clumsy viking trying to use a modern smartphone",
+        "A group of kittens operating a giant mecha-cat to get the treat jar",
+        "An elephant trying to hide behind a tiny lamp post",
+        "A futuristic robot butler accidentally serving a battery instead of toast"
     ]
 
     categories = {
@@ -583,15 +622,37 @@ def run_final():
 
     # ВЫБОР ТЕМЫ
     st1, st2, l, c = "Default", "Default", "Default", "Default"
+    history = get_history()
     
     if IS_SUNDAY_VIDEO:
+        # Пытаемся выбрать тему, которой не было в последних постах
         s = random.choice(humor_subjects)
+        for _ in range(20):
+            if s in history:
+                s = random.choice(humor_subjects)
+            else:
+                break
+        
+        # Сохраняем в историю
+        save_to_history(s)
+        
         t = f"Hyper-realistic and humorous video of {s}, positive vibe, vivid colors, morning inspiration"
         chosen_category = "Sunday Humor"
     else:
         # Случайная категория из мега-сборника
         chosen_category = random.choice(list(categories.keys()))
         s = random.choice(categories[chosen_category])
+        
+        # Пытаемся избежать повторов
+        for _ in range(20):
+            if s in history:
+                chosen_category = random.choice(list(categories.keys()))
+                s = random.choice(categories[chosen_category])
+            else:
+                break
+        
+        # Сохраняем выбор в историю
+        save_to_history(s)
         
         # Умный выбор стиля в зависимости от категории, чтобы не было одного неона
         if chosen_category in ["Cyberpunk & Sci-Fi", "Space & Cosmos"]:
