@@ -670,12 +670,7 @@ def run_final():
         else:
             target = f"@{target}"
     
-    # ПРИНТ ДЛЯ ОТЛАДКИ (Скрываем середину для безопасности, если это длинный ID)
-    if len(target) > 8:
-        masked_target = target[:4] + "..." + target[-4:]
-    else:
-        masked_target = target
-    print(f"🎯 ЦЕЛЕВОЙ КАНАЛ: {masked_target}")
+    print(f"🎯 ЦЕЛЕВОЙ КАНАЛ: {target}")
 
     video_url = None
     if VIDEO_MODE:
