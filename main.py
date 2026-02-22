@@ -178,17 +178,18 @@ def generate_video_kie(prompt, duration=5):
         print("❌ Ошибка: KIE_KEY не задан.", flush=True)
         return None
 
-    # АКТУАЛЬНЫЕ имена моделей Kie.ai (проверено по документации, февраль 2026)
-    # Формат: название_модели как оно есть в API Kie.ai
+    # АКТУАЛЬНЫЕ имена моделей Kie.ai (февраль 2026)
     models_to_try = [
-        "kling-v1-6",           # Kling 1.6 — стабильный, доступный
-        "kling-v2-master",      # Kling 2.0 Master — лучшее качество
-        "kling-v1-5",           # Kling 1.5 — запасной
-        "wan2.1-t2v-turbo",     # Wan 2.1 Turbo — быстрый
-        "wan2.1-t2v-14B",       # Wan 2.1 14B — высокое качество
-        "hailuo-02",            # Hailuo / MiniMax
-        "minimax-video-01",     # MiniMax Video
-        "veo2",                 # Google Veo 2
+        "google-veo-3.1",
+        "google-veo-3.1-fast",
+        "kling-3.0",
+        "kling-2.6",
+        "wan-2.6",
+        "hailuo-2.3",
+        "seedance-1.5-pro",
+        "sora-2",
+        "minimax-video-01",
+        "luma-dream-machine"
     ]
 
     headers = {
@@ -205,8 +206,9 @@ def generate_video_kie(prompt, duration=5):
             "model": current_model,
             "input": {
                 "prompt": prompt,
-                "duration": str(duration),
-                "aspect_ratio": "16:9"
+                "n_frames": "150",
+                "aspect_ratio": "16:9",
+                "remove_watermark": True
             }
         }
 
