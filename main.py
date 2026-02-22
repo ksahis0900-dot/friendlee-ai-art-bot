@@ -172,168 +172,103 @@ def generate_text_kie(theme):
 # ИСПРАВЛЕНО: актуальные имена моделей февраль 2026
 # ─────────────────────────────────────────────
 
-def generate_video_kie(prompt, duration=5):
-    """Генерирует видео через Kie.ai с актуальными именами моделей"""
+def generate_video_kie_and_poll(prompt, duration=5):
+    """Создаёт задачу генерации видео и ждёт результата (работает с новыми API Kie)"""
     if not KIE_KEY:
         print("❌ Ошибка: KIE_KEY не задан.", flush=True)
         return None
-
-    try:
-        test_endpoints = [
-            ("veo3", "https://api.kie.ai/api/v1/veo3/generate", {"model": "veo3_fast", "prompt": "a dog"}),
-            ("veo3_v", "https://api.kie.ai/api/v1/veo/generate", {"model": "veo3", "prompt": "a dog"}),
-            ("runway", "https://api.kie.ai/api/v1/runway/generate", {"prompt": "a dog"}),
-            ("luma", "https://api.kie.ai/api/v1/luma/generate", {"prompt": "a dog"}),
-            ("kling", "https://api.kie.ai/api/v1/kling/generate", {"prompt": "a dog"}),
-            ("sora2", "https://api.kie.ai/api/v1/sora2/generate", {"prompt": "a dog"}),
-            ("wan", "https://api.kie.ai/api/v1/wan/generate", {"prompt": "a dog"}),
-            ("hailuo", "https://api.kie.ai/api/v1/hailuo/generate", {"prompt": "a dog"}),
-        ]
-        print("🔍 PROBING SPECIFIC VIDEO ENDPOINTS...", flush=True)
-        for name, ep, pl in test_endpoints:
-            try:
-                rx = requests.post(ep, headers={"Authorization": f"Bearer {KIE_KEY}", "Content-Type": "application/json"}, json=pl, timeout=10)
-                print(f"   [{name}] {rx.status_code} {rx.text[:200]}", flush=True)
-            except Exception as ex:
-                print(f"   [{name}] Error: {ex}", flush=True)
-    except Exception as e:
-        print(f"⚠️ Exception fetching models: {e}", flush=True)
-
-    # АКТУАЛЬНЫЕ имена моделей Kie.ai (февраль 2026)
-
-    models_to_try = [
-        "google-veo-3.1",
-        "google-veo-3.1-fast",
-        "kling-3.0",
-        "kling-2.6",
-        "wan-2.6",
-        "hailuo-2.3",
-        "seedance-1.5-pro",
-        "sora-2",
-        "minimax-video-01",
-        "luma-dream-machine"
-    ]
 
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
         "Content-Type": "application/json"
     }
 
-    endpoint = "https://api.kie.ai/api/v1/jobs/createTask"
-
-    for current_model in models_to_try:
-        print(f"🎬 Kie.ai Video ({current_model}) создание задачи...", flush=True)
-
-        payload = {
-            "model": current_model,
-            "input": {
-                "prompt": prompt,
-                "n_frames": "150",
-                "aspect_ratio": "16:9",
-                "remove_watermark": True
-            }
+    providers = [
+        {
+            "name": "veo3_fast",
+            "create": "https://api.kie.ai/api/v1/veo/generate",
+            "poll": "https://api.kie.ai/api/v1/veo/record-detail",
+            "payload": {"model": "veo3_fast", "prompt": prompt}
+        },
+        {
+            "name": "veo3",
+            "create": "https://api.kie.ai/api/v1/veo/generate",
+            "poll": "https://api.kie.ai/api/v1/veo/record-detail",
+            "payload": {"model": "veo3", "prompt": prompt}
+        },
+        {
+            "name": "runway",
+            "create": "https://api.kie.ai/api/v1/runway/generate",
+            "poll": "https://api.kie.ai/api/v1/runway/record-detail",
+            "payload": {"prompt": prompt, "duration": duration, "quality": "1080p", "aspectRatio": "16:9"}
         }
+    ]
 
+    for p in providers:
+        print(f"🎬 Kie.ai Video ({p['name']}) создание задачи...", flush=True)
         try:
-            r = requests.post(endpoint, json=payload, headers=headers, timeout=60)
+            r = requests.post(p['create'], json=p['payload'], headers=headers, timeout=60)
             if r.status_code == 200:
                 data = r.json()
-                # Проверяем внутренний код ошибки
-                inner_code = data.get('code')
-                if inner_code and inner_code not in [0, 200]:
-                    msg = data.get('msg', '')
-                    print(f"      [{current_model}] API Error {inner_code}: {msg}", flush=True)
-                    if inner_code == 422:
-                        continue  # Модель не поддерживается — пробуем следующую
+                if data.get('code') not in [0, 200]:
+                    print(f"      [{p['name']}] API Error {data.get('code')}: {data.get('msg')}", flush=True)
                     continue
 
-                # Ищем task_id в разных местах ответа
-                data_part = data.get('data') or {}
-                if not isinstance(data_part, dict): data_part = {}
-                task_id = (
-                    data_part.get('task_id') or
-                    data_part.get('taskId') or
-                    data_part.get('id') or
-                    data.get('task_id') or
-                    data.get('taskId') or
-                    data.get('id')
-                )
-                if task_id:
-                    print(f"✅ Задача создана ({current_model})! Task ID: {task_id}", flush=True)
-                    return task_id
-                else:
-                    print(f"      [{current_model}] Нет task_id в ответе: {str(data)[:200]}", flush=True)
-            elif r.status_code == 422:
-                print(f"      [{current_model}] HTTP 422 — модель не поддерживается", flush=True)
-                continue
-            elif r.status_code == 401:
-                print(f"❌ KIE_KEY невалиден (401)!", flush=True)
-                return None
+                d = data.get('data') or {}
+                task_id = d.get('taskId') or d.get('task_id') or d.get('id')
+                if not task_id:
+                    print(f"      [{p['name']}] Нет taskId: {str(data)[:200]}", flush=True)
+                    continue
+
+                print(f"✅ Задача создана ({p['name']})! Task ID: {task_id}", flush=True)
+
+                # Поллинг
+                print(f"⏳ Поллинг задачи {task_id}...", flush=True)
+                max_attempts = 100
+                for attempt in range(max_attempts):
+                    time.sleep(15)
+                    try:
+                        pr = requests.get(f"{p['poll']}?taskId={task_id}", headers=headers, timeout=30)
+                        if pr.status_code == 200:
+                            pdata = pr.json()
+                            if pdata.get('code') == 404:
+                                print(f"   [{attempt+1}] 404 Задача не найдена...", flush=True)
+                                continue
+                            
+                            d2 = pdata.get('data') or {}
+                            state = d2.get('state') or d2.get('status')
+                            msg = d2.get('failMsg') or d2.get('msg') or d2.get('reason') or pdata.get('msg')
+                            
+                            if attempt % 3 == 0 or state:
+                                print(f"   [{attempt+1}/{max_attempts}] state={state} msg={msg}", flush=True)
+
+                            if state == 'success':
+                                vinfo = d2.get('videoInfo') or {}
+                                vurl = vinfo.get('videoUrl') or d2.get('url') or d2.get('video_url')
+                                
+                                if vurl:
+                                    print(f"✅ ВИДЕО ГОТОВО: {vurl}", flush=True)
+                                    return vurl
+                                else:
+                                    print(f"⚠️ Успех, но нет videoUrl: {str(d2)[:200]}", flush=True)
+                                    break
+                            elif state in ['fail', 'failed', 'error']:
+                                print(f"❌ Задача провалилась: {msg}", flush=True)
+                                break
+                        else:
+                            print(f"   [{attempt+1}] Ошибка HTTP {pr.status_code}", flush=True)
+                    except Exception as e:
+                        print(f"⚠️ Ошибка поллинга: {e}", flush=True)
+                
+                print(f"🛑 Превышено время или провал для {p['name']}, пробуем следующую...", flush=True)
+
             else:
-                print(f"      [{current_model}] HTTP {r.status_code}: {r.text[:150]}", flush=True)
+                print(f"      [{p['name']}] HTTP {r.status_code}: {r.text[:200]}", flush=True)
+
         except Exception as e:
-            print(f"⚠️ Ошибка создания задачи ({current_model}): {e}", flush=True)
+            print(f"⚠️ Ошибка {p['name']}: {e}", flush=True)
 
     print("❌ Ни одна видео-модель Kie.ai не сработала", flush=True)
-    return None
-
-
-def generate_video_kie_and_poll(prompt, duration=5):
-    """Создаёт задачу и ждёт результата"""
-    task_id = generate_video_kie(prompt, duration)
-    if not task_id: return None
-
-    headers = {"Authorization": f"Bearer {KIE_KEY}"}
-    poll_url = "https://api.kie.ai/api/v1/jobs/recordInfo"
-
-    print(f"⏳ Поллинг задачи {task_id}...", flush=True)
-    max_attempts = 60  # 60 * 20 сек = 20 минут максимум
-    for attempt in range(max_attempts):
-        time.sleep(20)
-        try:
-            pr = requests.get(f"{poll_url}?taskId={task_id}", headers=headers, timeout=30)
-
-            if pr.status_code == 200:
-                status_data = pr.json()
-                data_part = status_data.get('data', {})
-                if not isinstance(data_part, dict): data_part = {}
-
-                result_json_str = data_part.get('resultJson', '')
-                fail_code = data_part.get('failCode', '')
-                task_status = data_part.get('status', '')
-
-                # Логируем прогресс
-                if attempt % 5 == 0 or task_status:
-                    print(f"   [{attempt+1}/{max_attempts}] status={task_status}, failCode={fail_code}, hasResult={bool(result_json_str)}", flush=True)
-                else:
-                    print(f"   [{attempt+1}] ожидание...", flush=True)
-
-                # Провал
-                if fail_code and str(fail_code) not in ['', '0', 'None', 'null']:
-                    print(f"❌ Задача провалилась (failCode={fail_code})", flush=True)
-                    return None
-
-                # Успех
-                if result_json_str:
-                    try:
-                        result_obj = json.loads(result_json_str)
-                        result_urls = result_obj.get('resultUrls', [])
-                        if result_urls:
-                            v_url = result_urls[0]
-                            print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
-                            return v_url
-                    except Exception as je:
-                        print(f"   Не удалось распарсить resultJson: {je}", flush=True)
-
-            elif pr.status_code == 404:
-                print(f"   [{attempt+1}] 404 — задача ещё не появилась", flush=True)
-            else:
-                print(f"   [{attempt+1}] Ошибка опроса HTTP {pr.status_code}", flush=True)
-
-        except Exception as e:
-            print(f"⚠️ Ошибка поллинга: {e}", flush=True)
-
-    print("🛑 Превышено время ожидания видео.", flush=True)
     return None
 
 
