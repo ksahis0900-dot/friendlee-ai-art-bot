@@ -205,12 +205,12 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
     # Регуляция модели и попытка нескольких вариантов
     models_to_try = [model]
     if model in ["sora-2", "sora-2-text-to-video"]:
+        # Опытным путем и по поиску: пробуем более вероятные имена
         models_to_try = [
-            # В документации иногда sora-2, а реально бывает:
-            "kling-v1", "kling-v2", "kling-v2-1", "kling-v2-6",
-            "google-veo-v3.1", "google-veo-v3-1", "google-veo-3.1",
-            "wan-v2.1", "hailuo-v2.3", "seedance-v1.5-pro",
-            "sora-1", "sora-2", "cogvideo-5b", "luma-dream-machine"
+            "google-veo-3.1", "google-veo-3.1-fast",
+            "kling-3.0", "kling-2.6", "kling-2.1",
+            "wan-2.6", "hailuo-2.3", "seedance-1.5-pro",
+            "sora-1", "sora-2"
         ]
     
     headers = {
@@ -784,10 +784,10 @@ def run_final():
         print(f"🎬 РЕЖИМ ВИДЕО АКТИВИРОВАН! Модель: Sora 2")
         # Для видео добавим приписку о реализме, как просил пользователь
         video_prompt = f"{t}, high realism, cinematic style, detailed, 4k"
-        video_url = generate_video_kie(video_prompt, model="sora-2-text-to-video", duration=10, size="landscape")
+        video_url = generate_video_kie_and_poll(video_prompt, model="sora-2-text-to-video", duration=10, size="landscape")
         if not video_url:
-            print("⚠️ Видео не удалось сгенерировать. Пробуем фото как запасной вариант.")
-            VIDEO_MODE = False # Отключаем режим видео для этого прогона
+            print("⚠️ Видео не удалось сгенерировать. ОСТАНОВКА (по просьбе пользователя не делать фото-пост).")
+            return # ПРЕКРАЩАЕМ ВЫПОЛНЕНИЕ, НЕ ПЕРЕХОДИМ К ФОТО
     
     image_url, image_data = None, None
     provider_name = "Unknown"
