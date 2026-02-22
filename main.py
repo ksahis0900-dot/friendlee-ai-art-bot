@@ -179,18 +179,22 @@ def generate_video_kie(prompt, duration=5):
         return None
 
     try:
-        r_models = requests.get("https://api.kie.ai/v1/models", headers={"Authorization": f"Bearer {KIE_KEY}"}, timeout=10)
-        if r_models.status_code == 200:
-            mdata = r_models.json()
-            if 'data' in mdata:
-                all_ids = [m.get('id', '') for m in mdata['data'] if isinstance(m, dict)]
-                vid_kw = ["kling", "veo", "wan", "hailuo", "sora", "minimax", "runway", "luma", "video", "seedance"]
-                vids = [mid for mid in all_ids if any(k in mid.lower() for k in vid_kw)]
-                print(f"🔍 Найдены потенциальные видео-модели Kie.ai: {vids}", flush=True)
+        endpoints = ["https://api.kie.ai/v1/models", "https://api.kie.ai/api/v1/models"]
+        for ep in endpoints:
+            r_models = requests.get(ep, headers={"Authorization": f"Bearer {KIE_KEY}"}, timeout=10)
+            if r_models.status_code == 200:
+                mdata = r_models.json()
+                if 'data' in mdata:
+                    all_ids = [m.get('id', '') for m in mdata['data'] if isinstance(m, dict)]
+                    vid_kw = ["kling", "veo", "wan", "hailuo", "sora", "minimax", "runway", "luma", "video", "seedance"]
+                    vids = [mid for mid in all_ids if any(k in mid.lower() for k in vid_kw)]
+                    print(f"🔍 Найдены потенциальные видео-модели на {ep}: {vids}", flush=True)
+                else:
+                    print(f"⚠️ Нет 'data' в ответе {ep}: {str(mdata)[:200]}", flush=True)
             else:
-                print(f"⚠️ Не удалось извлечь список моделей Kie.ai: {str(mdata)[:200]}", flush=True)
+                print(f"⚠️ Ошибка от {ep}: {r_models.status_code} {r_models.text[:200]}", flush=True)
     except Exception as e:
-        print(f"⚠️ Ошибка получения списка моделей: {e}", flush=True)
+        print(f"⚠️ Exception fetching models: {e}", flush=True)
 
     # АКТУАЛЬНЫЕ имена моделей Kie.ai (февраль 2026)
 
