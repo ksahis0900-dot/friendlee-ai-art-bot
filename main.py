@@ -178,7 +178,22 @@ def generate_video_kie(prompt, duration=5):
         print("❌ Ошибка: KIE_KEY не задан.", flush=True)
         return None
 
+    try:
+        r_models = requests.get("https://api.kie.ai/v1/models", headers={"Authorization": f"Bearer {KIE_KEY}"}, timeout=10)
+        if r_models.status_code == 200:
+            mdata = r_models.json()
+            if 'data' in mdata:
+                all_ids = [m.get('id', '') for m in mdata['data'] if isinstance(m, dict)]
+                vid_kw = ["kling", "veo", "wan", "hailuo", "sora", "minimax", "runway", "luma", "video", "seedance"]
+                vids = [mid for mid in all_ids if any(k in mid.lower() for k in vid_kw)]
+                print(f"🔍 Найдены потенциальные видео-модели Kie.ai: {vids}", flush=True)
+            else:
+                print(f"⚠️ Не удалось извлечь список моделей Kie.ai: {str(mdata)[:200]}", flush=True)
+    except Exception as e:
+        print(f"⚠️ Ошибка получения списка моделей: {e}", flush=True)
+
     # АКТУАЛЬНЫЕ имена моделей Kie.ai (февраль 2026)
+
     models_to_try = [
         "google-veo-3.1",
         "google-veo-3.1-fast",
