@@ -129,8 +129,8 @@ def generate_text_pollinations(theme):
 def generate_text_kie(theme):
     if not KIE_KEY: return None
     print("🧠 Kie.ai (DeepSeek) пишет текст...")
-    # Используем актуальный эндпоинт для чата
-    url = "https://api.kie.ai/api/v1/chat/completions" 
+    # Пытаемся стучаться в чат. Если /api/v1 выдает ошибку, можно попробовать /v1
+    endpoints = ["https://api.kie.ai/api/v1/chat/completions", "https://api.kie.ai/v1/chat/completions".replace("/api/v1/", "/v1/")]
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
         "Content-Type": "application/json"
@@ -143,7 +143,7 @@ def generate_text_kie(theme):
     )
     
     payload = {
-        "model": "deepseek-v3",
+        "model": "gpt-4o", # Поменяли с deepseek-v3 на более стабильный gpt-4o
         "messages": [
             {"role": "system", "content": "You are a creative SMM manager for an AI Art channel. Always respond in valid JSON format."},
             {"role": "user", "content": prompt}
@@ -151,9 +151,15 @@ def generate_text_kie(theme):
         "temperature": 0.8
     }
     
+    r = None
+    for url in endpoints:
+        try:
+            r = requests.post(url, json=payload, headers=headers, timeout=60)
+            if r.status_code != 404: break
+        except: pass
+        
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=60)
-        if r.status_code == 200:
+        if r and r.status_code == 200:
             res_json = r.json()
             # Добавим проверку структуры ответа
             if 'choices' in res_json and len(res_json['choices']) > 0:
@@ -183,7 +189,7 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
     
     print(f"🎬 Kie.ai Video ({model}) создание задачи...", flush=True)
     # Исправленный эндпоинт согласно документации
-    url = "https://api.kie.ai/api/v1/jobs/createTask"
+    endpoints = ["https://api.kie.ai/api/v1/jobs/createTask", "https://api.kie.ai/v1/jobs/createTask".replace("/api/v1/", "/v1/")]
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
         "Content-Type": "application/json"
@@ -199,9 +205,17 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
         }
     }
     
+    r = None
+    for url in endpoints:
+        try:
+            r = requests.post(url, json=payload, headers=headers, timeout=60)
+            # Если 404 - пробуем следующий
+            if r.status_code != 404: break
+        except: pass
+
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=60)
-        print(f"📡 API Create Status: {r.status_code}", flush=True)
+        if r:
+            print(f"📡 API Create Status: {r.status_code}", flush=True)
         try:
             res_data = r.json()
             print(f"📦 API Message: {res_data.get('message', 'No message')}", flush=True)
@@ -225,13 +239,17 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
             print(f"⏳ Видео в очереди (ID: {task_id}). Ожидание...", flush=True)
             
             # Поллинг - taskId как query параметр
-            poll_base_url = "https://api.kie.ai/api/v1/jobs/recordInfo"
+            poll_endpoints = ["https://api.kie.ai/api/v1/jobs/recordInfo", "https://api.kie.ai/v1/jobs/recordInfo".replace("/api/v1/", "/v1/")]
             max_attempts = 50 
             for attempt in range(max_attempts):
                 time.sleep(20)
                 try:
-                    pr = requests.get(f"{poll_base_url}?taskId={task_id}", headers=headers, timeout=30)
-                    if pr.status_code == 200:
+                    pr = None
+                    for pep in poll_endpoints:
+                        pr = requests.get(f"{pep}?taskId={task_id}", headers=headers, timeout=30)
+                        if pr.status_code != 404: break
+                    
+                    if pr and pr.status_code == 200:
                         status_data = pr.json()
                         data_part = status_data.get('data', {})
                         if not isinstance(data_part, dict): data_part = {}
@@ -745,19 +763,23 @@ def run_final():
                             "size": "1024x1024"
                         }
                     }
-                    r = requests.post("https://api.kie.ai/api/v1/jobs/createTask", 
-                                      json=payload, headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=60)
+                    # Пытаемся создать задачу. Если /api/v1 выдает 404, пробуем /v1
+                    endpoints = ["https://api.kie.ai/api/v1/jobs/createTask", "https://api.kie.ai/v1/jobs/createTask".replace("/api/v1/", "/v1/")]
+                    r = None
+                    for ep in endpoints:
+                        r = requests.post(ep, json=payload, headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=60)
+                        if r.status_code != 404:
+                            break
                     
-                    if r.status_code == 200:
+                    if r and r.status_code == 200:
                         res = r.json()
-                        # Универсальный поиск taskId
                         task_id = res.get('taskId') or res.get('id')
                         if not task_id and 'data' in res:
                             d = res['data']
                             if isinstance(d, dict): task_id = d.get('taskId') or d.get('id')
                             elif isinstance(d, str): task_id = d
                     else:
-                        print(f"⚠️ Kie.ai Job Error {r.status_code}: {r.text[:200]}")
+                        print(f"⚠️ Kie.ai Job Error {r.status_code if r else 'NoResp'}: {r.text[:200] if r else ''}")
                         task_id = None
                         
                     if task_id:
@@ -765,9 +787,14 @@ def run_final():
                         # Мини-полинг для картинки (быстрее видео)
                         for attempt in range(20):
                             time.sleep(8)
-                            pr = requests.get(f"https://api.kie.ai/api/v1/jobs/recordInfo?taskId={task_id}", 
-                                              headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=30)
-                            if pr.status_code == 200:
+                            poll_endpoints = ["https://api.kie.ai/api/v1/jobs/recordInfo", "https://api.kie.ai/v1/jobs/recordInfo".replace("/api/v1/", "/v1/")]
+                            pr = None
+                            for pep in poll_endpoints:
+                                pr = requests.get(f"{pep}?taskId={task_id}", headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=30)
+                                if pr.status_code != 404:
+                                    break
+
+                            if pr and pr.status_code == 200:
                                 s_data = pr.json().get('data', {})
                                 if not isinstance(s_data, dict): s_data = {}
                                 
