@@ -205,7 +205,12 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
     # Регуляция модели и попытка нескольких вариантов
     models_to_try = [model]
     if model in ["sora-2", "sora-2-text-to-video"]:
-        models_to_try = ["google-veo-3.1", "veo-3.1", "google-veo-3.1-fast", "veo-3.1-fast"]
+        models_to_try = [
+            "google-veo-3.1", "google-veo-3.1-fast", 
+            "kling-v1", "kling-v1.5", 
+            "sora-1", "sora-2",
+            "cogvideo-5b", "luma-dream-machine"
+        ]
     
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
@@ -227,7 +232,6 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
             }
         }
         
-        r = None
         for url in endpoints:
             try:
                 r = requests.post(url, json=payload, headers=headers, timeout=60)
@@ -238,8 +242,11 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                     if not isinstance(data_part, dict): data_part = {}
                     task_id = data_part.get('task_id') or data.get('task_id') or data.get('taskId')
                     if task_id:
-                        print(f"✅ Задача создана! Task ID: {task_id}", flush=True)
+                        print(f"✅ Задача создана ({current_model})! Task ID: {task_id}", flush=True)
                         return task_id
+                
+                print(f"      [{current_model}] {url} -> HTTP {r.status_code}: {r.text[:150]}", flush=True)
+                
                 # Если 422, значит модель не та, пробуем следующую из списка моделей
                 if r.status_code == 422:
                     break 
