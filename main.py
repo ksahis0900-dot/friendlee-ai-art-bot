@@ -224,7 +224,7 @@ def generate_video_kie_and_poll(prompt, duration=5):
 
                 # Поллинг
                 print(f"⏳ Поллинг задачи {task_id}...", flush=True)
-                max_attempts = 100
+                max_attempts = 10  # 10 * 15s = 2.5 mins
                 for attempt in range(max_attempts):
                     time.sleep(15)
                     try:
