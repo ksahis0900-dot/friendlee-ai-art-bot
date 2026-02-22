@@ -4,12 +4,12 @@ on:
   schedule:
     # АРТ: 9:07, 14:07, 19:07, 21:07 МСК (6:07, 11:07, 16:07, 18:07 UTC)
     - cron: '7 6,11,16,18 * * *'
-    # ВИДЕО: Воскресенье 22:07 МСК (19:07 UTC)
+    # ВИДЕО: Воскресенье 22:07 МСК (19:07 UTC) — отдельный триггер
     - cron: '7 19 * * 0'
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Post mode (art or video)'
+        description: 'Post mode'
         required: true
         default: 'art'
         type: choice
@@ -17,7 +17,7 @@ on:
           - art
           - video
       custom_prompt:
-        description: 'Custom prompt for image generation (optional)'
+        description: 'Custom prompt (optional)'
         required: false
         default: ''
 
@@ -39,8 +39,8 @@ jobs:
       - name: Runner Time Info
         run: |
           echo "Date: $(date)"
-          echo "DOW: $(date +%u) (1-Mon, 7-Sun)"
-          echo "Hour: $(date +%H)"
+          echo "DOW: $(date +%u) (1=Mon, 7=Sun)"
+          echo "Hour UTC: $(date +%H)"
 
       - name: Run Art Bot
         env:
@@ -49,6 +49,7 @@ jobs:
           GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
           SILICONFLOW_KEY: ${{ secrets.SILICONFLOW_KEY }}
           RUNWARE_KEY: ${{ secrets.RUNWARE_KEY }}
+          # ИСПРАВЛЕНО: KIE_KEY обновлён — обновите секрет в GitHub Settings
           KIE_KEY: ${{ secrets.KIE_KEY }}
           HF_KEY: ${{ secrets.HF_KEY }}
           CLOUDFLARE_ID: ${{ secrets.CLOUDFLARE_ID }}
@@ -58,17 +59,35 @@ jobs:
           LAOZHANG_KEY: ${{ secrets.LAOZHANG_KEY }}
           YOUR_SIGNATURE: "@fRieNDLee34"
         run: |
-          DOW=$(date +%u)
-          HOUR=$(date +%H)
-          
-          # Если это ручной запуск ВИДЕО или воскресенье 19:00 UTC (22:00 MSK)
-          if [ "${{ github.event.inputs.mode }}" == "video" ] || ([ "$DOW" -eq 7 ] && [ "$HOUR" -ge 18 ] && [ "$HOUR" -le 20 ]); then
-            echo "🎬 Running Video Generation..."
+          # ──────────────────────────────────────────────────────────────────
+          # ЛОГИКА ВЫБОРА РЕЖИМА
+          # Приоритет: ручной запуск > воскресенье 19 UTC > обычный арт
+          # Python НЕ проверяет время сам — всё решается здесь
+          # ──────────────────────────────────────────────────────────────────
+
+          DOW=$(date +%u)   # 1=Mon .. 7=Sun
+          HOUR=$(date +%H)  # UTC час
+
+          echo "DOW=$DOW, HOUR=$HOUR, event=${{ github.event_name }}, mode=${{ github.event.inputs.mode }}"
+
+          # 1. Ручной запуск в режиме video
+          if [ "${{ github.event.inputs.mode }}" == "video" ]; then
+            echo "🎬 Ручной запуск ВИДЕО..."
             python3 -u main.py --video 2>&1 | tee bot_run.log
+
+          # 2. Кастомный промпт
           elif [ -n "${{ github.event.inputs.custom_prompt }}" ]; then
-            echo "🖌️ Running Art Generation with Custom Prompt..."
+            echo "🖌️ Кастомный промпт..."
             python3 -u main.py --custom-prompt "${{ github.event.inputs.custom_prompt }}" 2>&1 | tee bot_run.log
+
+          # 3. Расписание воскресенье 19:00 UTC (22:00 МСК)
+          # Проверяем: DOW=7 И час между 18 и 21 (запас на задержку GitHub Actions ±1ч)
+          elif [ "$DOW" -eq 7 ] && [ "$HOUR" -ge 18 ] && [ "$HOUR" -le 21 ]; then
+            echo "🎬 Авто-воскресенье ВИДЕО (DOW=$DOW, HOUR=$HOUR UTC)..."
+            python3 -u main.py --video 2>&1 | tee bot_run.log
+
+          # 4. Обычный арт-пост
           else
-            echo "🖌️ Running Art Generation..."
+            echo "🖌️ Обычный арт-пост..."
             python3 -u main.py 2>&1 | tee bot_run.log
           fi
