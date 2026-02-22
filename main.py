@@ -233,7 +233,10 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                 r = requests.post(url, json=payload, headers=headers, timeout=60)
                 if r.status_code == 200:
                     data = r.json()
-                    task_id = data.get('data', {}).get('task_id')
+                    # Защита от {"data": null}
+                    data_part = data.get('data')
+                    if not isinstance(data_part, dict): data_part = {}
+                    task_id = data_part.get('task_id') or data.get('task_id') or data.get('taskId')
                     if task_id:
                         print(f"✅ Задача создана! Task ID: {task_id}", flush=True)
                         return task_id
@@ -241,9 +244,8 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
                 if r.status_code == 422:
                     break 
             except Exception as e:
-                print(f"⚠️ Ошибка вызова {url}: {e}")
+                print(f"⚠️ Ошибка создания задачи на {url}: {e}")
                 
-    return None
     return None
 
 def generate_video_kie_and_poll(prompt, model="sora-2-text-to-video", duration=10, size="landscape"):
