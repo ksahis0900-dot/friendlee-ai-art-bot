@@ -183,116 +183,107 @@ def generate_video_kie(prompt, model="sora-2-text-to-video", duration=10, size="
         print("❌ Ошибка: KIE_KEY не задан.", flush=True)
         return None
     
-    # Регуляция модели
+    # Регуляция модели и попытка нескольких вариантов
+    models_to_try = [model]
     if model in ["sora-2", "sora-2-text-to-video"]:
-        model = "google-veo-3.1" # Veo 3.1 - актуальный флагман Kie.ai
+        models_to_try = ["google-veo-3.1", "veo-3.1", "google-veo-3.1-fast", "veo-3.1-fast"]
     
-    print(f"🎬 Kie.ai Video ({model}) создание задачи...", flush=True)
-    # Исправленный эндпоинт согласно документации
-    endpoints = ["https://api.kie.ai/api/v1/jobs/createTask", "https://api.kie.ai/v1/jobs/createTask".replace("/api/v1/", "/v1/")]
     headers = {
         "Authorization": f"Bearer {KIE_KEY}",
         "Content-Type": "application/json"
     }
     
-    payload = {
-        "model": model,
-        "input": {
-            "prompt": prompt,
-            "n_frames": str(duration),
-            "aspect_ratio": size,
-            "remove_watermark": True
+    for current_model in models_to_try:
+        print(f"🎬 Kie.ai Video ({current_model}) создание задачи...", flush=True)
+        # Исправленный эндпоинт согласно документации
+        endpoints = ["https://api.kie.ai/api/v1/jobs/createTask", "https://api.kie.ai/v1/jobs/createTask".replace("/api/v1/", "/v1/")]
+        
+        payload = {
+            "model": current_model,
+            "input": {
+                "prompt": prompt,
+                "n_frames": str(duration),
+                "aspect_ratio": size,
+                "remove_watermark": True
+            }
         }
-    }
+        
+        r = None
+        for url in endpoints:
+            try:
+                r = requests.post(url, json=payload, headers=headers, timeout=60)
+                if r.status_code == 200:
+                    data = r.json()
+                    task_id = data.get('data', {}).get('task_id')
+                    if task_id:
+                        print(f"✅ Задача создана! Task ID: {task_id}", flush=True)
+                        return task_id
+                # Если 422, значит модель не та, пробуем следующую из списка моделей
+                if r.status_code == 422:
+                    break 
+            except Exception as e:
+                print(f"⚠️ Ошибка вызова {url}: {e}")
+                
+    return None
+    return None
+
+def generate_video_kie_and_poll(prompt, model="sora-2-text-to-video", duration=10, size="landscape"):
+    task_id = generate_video_kie(prompt, model, duration, size)
+    if not task_id: return None
     
-    r = None
-    for url in endpoints:
+    headers = {"Authorization": f"Bearer {KIE_KEY}"}
+    poll_endpoints = ["https://api.kie.ai/api/v1/jobs/recordInfo", "https://api.kie.ai/v1/jobs/recordInfo".replace("/api/v1/", "/v1/")]
+    
+    # Поллинг
+    max_attempts = 50 
+    for attempt in range(max_attempts):
+        time.sleep(20)
         try:
-            r = requests.post(url, json=payload, headers=headers, timeout=60)
-            # Если 404 - пробуем следующий
-            if r.status_code != 404: break
-        except: pass
-
-    try:
-        if r:
-            print(f"📡 API Create Status: {r.status_code}", flush=True)
-        try:
-            res_data = r.json()
-            print(f"📦 API Message: {res_data.get('message', 'No message')}", flush=True)
-        except:
-            print(f"📦 API Raw: {r.text[:500]}", flush=True)
-            return None
-
-        if r.status_code == 200:
-            # В новом API task_id может быть в 'data' или в корне
-            task_id = res_data.get('taskId') or res_data.get('id')
-            if not task_id and 'data' in res_data:
-                if isinstance(res_data['data'], dict):
-                    task_id = res_data['data'].get('taskId') or res_data['data'].get('id')
-                elif isinstance(res_data['data'], str):
-                    task_id = res_data['data']
-
-            if not task_id:
-                print(f"⚠️ Task ID not found. Data: {res_data}", flush=True)
-                return None
+            pr = None
+            for pep in poll_endpoints:
+                pr = requests.get(f"{pep}?taskId={task_id}", headers=headers, timeout=30)
+                if pr.status_code != 404: break
             
-            print(f"⏳ Видео в очереди (ID: {task_id}). Ожидание...", flush=True)
-            
-            # Поллинг - taskId как query параметр
-            poll_endpoints = ["https://api.kie.ai/api/v1/jobs/recordInfo", "https://api.kie.ai/v1/jobs/recordInfo".replace("/api/v1/", "/v1/")]
-            max_attempts = 50 
-            for attempt in range(max_attempts):
-                time.sleep(20)
-                try:
-                    pr = None
-                    for pep in poll_endpoints:
-                        pr = requests.get(f"{pep}?taskId={task_id}", headers=headers, timeout=30)
-                        if pr.status_code != 404: break
-                    
-                    if pr and pr.status_code == 200:
-                        status_data = pr.json()
-                        data_part = status_data.get('data', {})
-                        if not isinstance(data_part, dict): data_part = {}
+            if pr and pr.status_code == 200:
+                status_data = pr.json()
+                data_part = status_data.get('data', {})
+                if not isinstance(data_part, dict): data_part = {}
+                
+                # Kie.ai recordInfo возвращает resultJson (строка JSON внутри JSON)
+                result_json_str = data_part.get('resultJson', '')
+                fail_code = data_part.get('failCode', '')
+                
+                # Логируем каждые 10 попыток
+                if attempt % 10 == 0:
+                    print(f"   [{attempt+1}] resultJson len={len(result_json_str)}, failCode={fail_code}", flush=True)
+                else:
+                    print(f"   [{attempt+1}] ожидание... (resultJson={bool(result_json_str)})", flush=True)
+                
+                # Если есть failCode — провал
+                if fail_code and str(fail_code) not in ['', '0', 'None']:
+                    print(f"❌ Провал (failCode={fail_code}): {data_part}", flush=True)
+                    return None
+                
+                # Если resultJson не пустой — парсим
+                if result_json_str:
+                    try:
+                        import json
+                        result_obj = json.loads(result_json_str)
+                        result_urls = result_obj.get('resultUrls', [])
+                        print(f"   [{attempt+1}] Найдено URL: {len(result_urls)}", flush=True)
                         
-                        # Kie.ai recordInfo возвращает resultJson (строка JSON внутри JSON)
-                        result_json_str = data_part.get('resultJson', '')
-                        fail_code = data_part.get('failCode', '')
-                        
-                        # Логируем каждые 10 попыток
-                        if attempt % 10 == 0:
-                            print(f"   [{attempt+1}] resultJson len={len(result_json_str)}, failCode={fail_code}", flush=True)
-                        else:
-                            print(f"   [{attempt+1}] ожидание... (resultJson={bool(result_json_str)})", flush=True)
-                        
-                        # Если есть failCode — провал
-                        if fail_code and str(fail_code) not in ['', '0', 'None']:
-                            print(f"❌ Провал (failCode={fail_code}): {data_part}", flush=True)
-                            return None
-                        
-                        # Если resultJson не пустой — парсим
-                        if result_json_str:
-                            try:
-                                result_obj = json.loads(result_json_str)
-                                result_urls = result_obj.get('resultUrls', [])
-                                print(f"   [{attempt+1}] Найдено URL: {len(result_urls)}", flush=True)
-                                
-                                if result_urls and len(result_urls) > 0:
-                                    v_url = result_urls[0]
-                                    print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
-                                    return v_url
-                            except json.JSONDecodeError as je:
-                                print(f"   [{attempt+1}] Не удалось распарсить resultJson: {je}", flush=True)
-                    else:
-                        print(f"⚠️ Ошибка опроса ({pr.status_code})", flush=True)
-                except Exception as e:
-                    print(f"⚠️ Ошибка сети: {e}", flush=True)
-            
-            print("🛑 Превышено время ожидания.", flush=True)
-
-        else:
-            print(f"⚠️ Ошибка API ({r.status_code}): {r.text[:500]}", flush=True)
-    except Exception as e:
-        print(f"⚠️ Ошибка запроса: {e}", flush=True)
+                        if result_urls and len(result_urls) > 0:
+                            v_url = result_urls[0]
+                            print(f"✅ ВИДЕО ГОТОВО: {v_url}", flush=True)
+                            return v_url
+                    except Exception as je:
+                        print(f"   [{attempt+1}] Не удалось распарсить resultJson: {je}", flush=True)
+            else:
+                print(f"⚠️ Ошибка опроса ({pr.status_code if pr else 'No Response'})", flush=True)
+        except Exception as e:
+            print(f"⚠️ Ошибка сети: {e}", flush=True)
+    
+    print("🛑 Превышено время ожидания.", flush=True)
     return None
 
 def generate_image_gemini(prompt):
