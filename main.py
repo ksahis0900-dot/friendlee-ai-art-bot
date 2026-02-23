@@ -66,6 +66,13 @@ if bot and TOKEN:
     except Exception as e:
         print(f"❌ ОШИБКА АВТОРИЗАЦИИ: {e}")
 
+# ОБЩАЯ ИНСТРУКЦИЯ ДЛЯ ТЕКСТА
+RUSSIAN_GRAMMAR_PROMPT = (
+    " ОБЯЗАТЕЛЬНОЕ УСЛОВИЕ: Пиши только на РУССКОМ языке. "
+    "Соблюдай правила ГРАММАТИКИ и ПУНКТУАЦИИ. Текст должен быть живым, "
+    "эмоциональным, БЕЗ ОШИБОК и опечаток. Используй тематические эмодзи."
+)
+
 # ─────────────────────────────────────────────
 # ГЕНЕРАЦИЯ ТЕКСТА
 # ─────────────────────────────────────────────
@@ -618,12 +625,14 @@ def run_final():
         save_to_history(s)
         t = f"Hyper-realistic and humorous video of {s}, positive vibe, vivid colors, morning inspiration"
         chosen_category = "Sunday Humor"
+        t_prompt = f"Напиши ОЧЕНЬ СМЕШНОЙ и мотивационный пост на РУССКОМ языке про {s}. Используй много эмодзи! Текст должен быть ГРАМОТНЫМ и вдохновляющим. Структура JSON: TITLE, CONCEPT, TAGS."
     elif holiday_theme:
         print(f"🎉 СЕГОДНЯ ПРАЗДНИК! Тема: {holiday_theme}")
         t = holiday_theme
         chosen_category = "Holiday Special"
         st1, st2, l = "Epic cinematic", "Digital Illustration", "Dramatic Volumetric"
         s = "Holiday Celebration"
+        t_prompt = f"Напиши торжественный, ГРАМОТНЫЙ и душевный поздравительный пост на РУССКОМ языке про {t}. Праздник сегодня! Используй красивые метафоры и много тематических эмодзи. Структура JSON: TITLE, CONCEPT, TAGS."
     else:
         # ... (обычная логика выбора темы)
         chosen_category = random.choice(list(categories.keys()))
@@ -668,10 +677,12 @@ def run_final():
     print(f"🎲 Тема: {t}")
 
     # ── ГЕНЕРАЦИЯ ТЕКСТА ──
-    t_prompt = (
-        f"Write a VERY FUNNY and MOTIVATIONAL Russian post about {s}. Use many emojis! Structure: TITLE, CONCEPT, TAGS."
-        if IS_SUNDAY_VIDEO else t
-    )
+    if IS_SUNDAY_VIDEO:
+        t_prompt = f"Write a VERY FUNNY and MOTIVATIONAL Russian post about {s}. Use many emojis! Structure: TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
+    elif holiday_theme:
+        t_prompt = f"Напиши торжественный, ГРАМОТНЫЙ и душевный поздравительный пост на РУССКОМ языке про {t}. Праздник сегодня! Используй красивые метафоры и тематические эмодзи. Структура JSON: TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
+    else:
+        t_prompt = f"Write a creative Telegram post for the theme: {t}. Format: JSON with TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
 
     print("📝 Генерирую текст под тему...")
     raw = generate_text_kie(t_prompt)
@@ -683,7 +694,9 @@ def run_final():
         raw = generate_text_openrouter(t_prompt)
     if not raw:
         print("⚠️ OpenRouter молчит. Пробую Gemini...")
-        raw = generate_text(f"Post JSON about {t_prompt} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}}")
+        # The original Gemini prompt was different, modifying it to append RUSSIAN_GRAMMAR_PROMPT
+        gemini_prompt = f"Post JSON about {t_prompt} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}} {RUSSIAN_GRAMMAR_PROMPT}"
+        raw = generate_text(gemini_prompt)
     if not raw:
         print("⚠️ Все молчат. Пробую Pollinations AI...")
         raw = generate_text_pollinations(t_prompt)
