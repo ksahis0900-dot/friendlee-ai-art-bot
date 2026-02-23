@@ -826,20 +826,29 @@ def run_final():
         ]
 
         # ПРЕМИУМ МОДЕЛИ (Kie Nano Banana) — Только для праздников и Русской темы
-        KIE_MODELS = [
+        KIE_NANO_FRONT = [
             {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_image", "model": "nano-banana-pro", "key": KIE_KEY},
             {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_image", "model": "gpt-image-1.5",  "key": KIE_KEY},
             {"name": "Kie.ai (Flux Kontext)",     "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
+            {"name": "Kie.ai (SDXL)",             "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
+        ]
+        
+        # ОБЫЧНЫЕ KIE МОДЕЛИ — Для остальных случаев
+        KIE_STANDARD_FRONT = [
+            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_image", "model": "gpt-image-1.5",  "key": KIE_KEY},
+            {"name": "Kie.ai (Flux Kontext)",     "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
+            {"name": "Kie.ai (SDXL)",             "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
+            {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_image", "model": "nano-banana-pro", "key": KIE_KEY},
         ]
 
-        # ЛОГИКА ОЧЕРЕДНОСТИ
+        # ЛОГИКА ОЧЕРЕДНОСТИ - Всегда KIE.ai первый, остальные как запасные
         is_rus_theme = selected_category == "Russian Spirit & Traditions"
         if holiday_theme or is_rus_theme:
-            print("🌟 ПРИОРИТЕТ: Праздник или Русская тема. Используем Kie Nano Banana.")
-            IMAGE_MODELS = KIE_MODELS + FLUX_MODELS
+            print("🌟 ПРИОРИТЕТ: Праздник/Традиции. Используем Kie Nano Banana первым.")
+            IMAGE_MODELS = KIE_NANO_FRONT + FLUX_MODELS
         else:
-            print("🎨 ОБЫЧНЫЙ РЕЖИМ: Используем Flux.")
-            IMAGE_MODELS = FLUX_MODELS + KIE_MODELS
+            print("🎨 ОБЫЧНЫЙ РЕЖИМ: Используем Kie.ai (GPT 1.5/Flux) первым. Остальные в запасе.")
+            IMAGE_MODELS = KIE_STANDARD_FRONT + FLUX_MODELS
 
         print(f"🎨 Начинаем генерацию. Доступно провайдеров: {len(IMAGE_MODELS)}")
 
