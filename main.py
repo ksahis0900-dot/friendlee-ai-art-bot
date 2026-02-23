@@ -606,7 +606,7 @@ def run_final():
     }
 
     light_groups = {
-        "Natural": ["Golden Hour", "God Rays", "Sunset Silhouette", "Moonlight Silver Glow", "Candlelight Warm Glow", "Morning Fog Light", "Soft Pastel Light"],
+        "Natural": ["Golden Hour", "God Rays", "Sunset Silhouette", "Moonlight Silver Glow", "Candlelight Warm Glow", "Morning Fog Light", "Soft Pastel Light", "Firefly Bokeh", "Underwater Caustics"],
         "Cyber/Neon": ["Neon Glow", "Cyber-Blue Bloom", "Cyber-Green Haze", "Neon Pink and Blue Split", "Laser Grid Light", "Bioluminescence", "Fluorescent Tube Light"],
         "Dramatic": ["Volumetric Lighting", "Dark Contrast", "Rembrandt Lighting", "Rim Lighting", "Studio Dramatic Spotlight", "Eclipse Shadow Light", "Lightning Strike Flash"]
     }
@@ -701,10 +701,10 @@ def run_final():
             possible_lights = light_groups["Dramatic"] + light_groups["Natural"] + ["Bioluminescence"]
         elif chosen_category in ["Nature & Bio-Mech", "Underwater World", "Micro World"]:
             possible_styles = style_groups["Modern/Digital"] + style_groups["Classic"] + style_groups["Cinematic"]
-            possible_lights = light_groups["Natural"] + ["Bioluminescence", "Firefly Bokeh", "Underwater Caustics"]
+            possible_lights = light_groups["Natural"] + light_groups["Cyber/Neon"]
         else:
-            possible_styles = style_groups["Classic"] + style_groups["Modern/Digital"] + style_groups["Cinematic"] + style_groups["Fantasy/Surreal"]
-            possible_lights = light_groups["Natural"] + light_groups["Dramatic"]
+            possible_styles = style_groups["Classic"] + style_groups["Modern/Digital"] + style_groups["Cinematic"] + style_groups["Fantasy/Surreal"] + style_groups["Futuristic/Cyber"]
+            possible_lights = light_groups["Natural"] + light_groups["Dramatic"] + light_groups["Cyber/Neon"]
 
         st1 = random.choice(possible_styles)
         st2 = random.choice(possible_styles)
