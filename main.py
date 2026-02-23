@@ -575,11 +575,32 @@ def run_final():
         "in a forest of mirrors", "during a meteor shower", "inside a drop of dew",
     ]
 
+    # ── ПРОВЕРКА ПРАЗДНИКОВ ──
+    def get_holiday_context():
+        from datetime import datetime
+        now = datetime.now()
+        day_month = (now.day, now.month)
+        
+        holidays = {
+            (23, 2): "Defender of the Fatherland Day (Feb 23). Cinematic epic art of a heroic protector, warrior spirit, Russian landscape, military aesthetic, courage and strength.",
+            (8, 3): "International Women's Day (March 8). Beautiful flowers, spring atmosphere, elegance, feminine power, bright and soft colors, digital art masterpiece.",
+            (1, 1): "New Year's Day. Magical winter atmosphere, festive lights, fireworks, cozy and epic celebrations.",
+            (7, 1): "Orthodox Christmas. Spiritual and cozy winter atmosphere, stars, snowy village, golden light.",
+            (9, 5): "Victory Day (May 9). Heroic and respectful art, memory and glory, eternal flame, spring flowers, peaceful sky.",
+            (12, 6): "Russia Day. Beautiful Russian nature, tricolor aesthetic, vast fields and modern cities.",
+            (4, 11): "Unity Day. People together, strength in unity, historical and heroic aesthetic.",
+            (31, 12): "New Year Eve. Festive countdown, sparkling champagne, snowy night, magic everywhere."
+        }
+        return holidays.get(day_month)
+
     # ── ВЫБОР ТЕМЫ ──
     st1, st2, l, c = "Default", "Default", "Default", "Default"
     history = get_history()
+    
+    holiday_theme = get_holiday_context()
 
     if IS_SUNDAY_VIDEO:
+        # ... (логика видео без изменений)
         s = random.choice(humor_subjects)
         for _ in range(20):
             if s in history: s = random.choice(humor_subjects)
@@ -587,7 +608,14 @@ def run_final():
         save_to_history(s)
         t = f"Hyper-realistic and humorous video of {s}, positive vibe, vivid colors, morning inspiration"
         chosen_category = "Sunday Humor"
+    elif holiday_theme:
+        print(f"🎉 СЕГОДНЯ ПРАЗДНИК! Тема: {holiday_theme}")
+        t = holiday_theme
+        chosen_category = "Holiday Special"
+        st1, st2, l = "Epic cinematic", "Digital Illustration", "Dramatic Volumetric"
+        s = "Holiday Celebration"
     else:
+        # ... (обычная логика выбора темы)
         chosen_category = random.choice(list(categories.keys()))
         s = random.choice(categories[chosen_category])
         for _ in range(20):
