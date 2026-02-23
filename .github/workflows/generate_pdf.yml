@@ -1,0 +1,27 @@
+name: Generate PDF Report
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Run script
+        run: |
+          pip install Pillow
+          sudo apt-get update && sudo apt-get install -y fonts-liberation
+          python create_pdf_report.py
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Development_Journey_Report
+          path: Development_Journey_Report.pdf
