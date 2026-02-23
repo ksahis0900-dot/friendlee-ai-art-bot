@@ -331,11 +331,11 @@ def run_final():
             return f"{random.choice(pool)} {text} {random.choice(pool)}"
         return text
 
-    # ── ОПРЕДЕЛЯЕМ РЕЖИМ ТОЛЬКО ПО АРГУМЕНТАМ ──
-    # YAML сам решает передавать --video или нет
-    # Python НЕ проверяет время — это устраняет конфликт логики
-    VIDEO_MODE = "--video" in sys.argv
-    IS_SUNDAY_VIDEO = VIDEO_MODE
+    # ── ОПРЕДЕЛЯЕМ РЕЖИМ ──
+    # ВИДЕО ОТМЕНЕНО: теперь воскресное настроение передается через ФОТО
+    PHOTO_MOOD_SUNDAY = "--video" in sys.argv
+    IS_SUNDAY_VIDEO = False # Полная отмена видео
+    VIDEO_MODE = False
 
     CUSTOM_PROMPT = None
     if "--custom-prompt" in sys.argv:
@@ -600,6 +600,7 @@ def run_final():
             (12, 4): "Cosmonautics Day. Yuri Gagarin, Soviet space aesthetic, first man in space, stars and rockets, retro-futurism.",
             (1, 5): "Spring and Labor Day. Sunny spring day, blossoming trees, joy, balloons and bright colors.",
             (9, 5): "Victory Day (May 9). Eternal flame, St. George ribbon, memory and honor, peaceful sky, spring flowers, military parade aesthetic.",
+            (1, 6): "International Children's Day (June 1). Bright and joyful Russian childhood aesthetic, sunlit meadows, traditional toys, happiness and laughter, soft warm colors.",
             (12, 6): "Russia Day. Vast landscapes from Ural to Vladivostok, tricolor flag aesthetic, modern and traditional Russia.",
             (8, 7): "Family, Love and Fidelity Day. Chamomile flowers, warm family atmosphere, sunlit garden.",
             (22, 8): "National Flag Day. Russian tricolor in creative ways, patriotic aesthetic, blue sky.",
@@ -677,10 +678,10 @@ def run_final():
     print(f"🎲 Тема: {t}")
 
     # ── ГЕНЕРАЦИЯ ТЕКСТА ──
-    if IS_SUNDAY_VIDEO:
-        t_prompt = f"Write a VERY FUNNY and MOTIVATIONAL Russian post about {s}. Use many emojis! Structure: TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
+    if PHOTO_MOOD_SUNDAY:
+        t_prompt = f"Напиши ОЧЕНЬ СМЕШНОЙ, КИНЕМАТОГРАФИЧНЫЙ и мотивационный пост на РУССКОМ языке про {s}. Представь, что это кадр из эпической комедии! Используй много эмодзи. Структура JSON: TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
     elif holiday_theme:
-        t_prompt = f"Напиши торжественный, ГРАМОТНЫЙ и душевный поздравительный пост на РУССКОМ языке про {t}. Праздник сегодня! Используй красивые метафоры и тематические эмодзи. Структура JSON: TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
+        t_prompt = f"Напиши торжественный, ГРАМОТНЫЙ и душевный поздравительный пост на РУССКОМ языке про {t}. Праздник сегодня! Передай истинную РУССКУЮ ЭСТЕТИКУ, используй красивые метафоры и тематические эмодзи. Структура JSON: TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
     else:
         t_prompt = f"Write a creative Telegram post for the theme: {t}. Format: JSON with TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
 
@@ -956,37 +957,63 @@ def run_final():
             else:
                 raise
 
+# ─────────────────────────────────────────────
+# ПЛАНИРОВЩИК И ЗАЩИТА (WATCHDOG)
+# ─────────────────────────────────────────────
 
-# ─────────────────────────────────────────────
-# ПЛАНИРОВЩИК ДЛЯ СЕРВЕРА
-# ─────────────────────────────────────────────
+execution_lock = threading.Lock()
+last_post_time = datetime.min
+
+def safe_run_final():
+    """Обертка для запуска с логированием и защитой от зависаний"""
+    global last_post_time
+    # Пытаемся захватить лок, чтобы не запускать два поста одновременно
+    if not execution_lock.acquire(blocking=False):
+        print("⚠️ [Watchdog] Пропуск: Другая генерация уже запущена.")
+        return
+
+    try:
+        print(f"🚀 [Watchdog] Запуск генерации: {datetime.now().strftime('%H:%M:%S')}")
+        run_final()
+        last_post_time = datetime.now()
+        print("✅ [Watchdog] Пост успешно опубликован.")
+    except Exception as e:
+        print(f"❌ [Watchdog] Критическая ошибка генерации: {e}")
+        # Если ошибка произошла, watchdog увидит, что время последнего поста старое, и попробует снова через цикл
+    finally:
+        execution_lock.release()
 
 def scheduler_thread():
-    """Запускает планировщик в фоновом потоке"""
-    print("⏰ Внутренний планировщик запущен...")
+    """Улучшенный планировщик с контролем выхода постов"""
+    print("⏰ Внутренний планировщик и Watchdog запущены...")
     
-    # Расписание дублирует логику GitHub Actions (МСК время)
-    # АРТ: 09:07, 14:07, 19:07, 21:07
-    schedule.every().day.at("09:07").do(run_final)
-    schedule.every().day.at("14:07").do(run_final)
-    schedule.every().day.at("19:07").do(run_final)
-    schedule.every().day.at("21:07").do(run_final)
+    # Расписание (МСК время)
+    post_times = ["09:07", "14:07", "19:07", "21:07", "22:07"]
     
-    # ВИДЕО: Воскресенье 22:07
-    def check_sunday_video():
-        from datetime import datetime
-        if datetime.now().weekday() == 6: # Sunday
-            print("🎬 Воскресное видео по расписанию!")
-            # Имитируем флаг видео
-            sys.argv.append("--video")
-            run_final()
-            sys.argv.remove("--video")
-
-    schedule.every().sunday.at("22:07").do(check_sunday_video)
+    for t in post_times:
+        schedule.every().day.at(t).do(safe_run_final)
 
     while True:
-        schedule.run_pending()
-        time.sleep(60)
+        try:
+            schedule.run_pending()
+            
+            # WATCHDOG ЛОГИКА (Задержка максимум 10 минут)
+            now = datetime.now()
+            for t_str in post_times:
+                t_hour, t_min = map(int, t_str.split(':'))
+                sched_today = now.replace(hour=t_hour, minute=t_min, second=0, microsecond=0)
+                
+                # Если прошло больше 10 минут с момента плана, а поста не было
+                if timedelta(minutes=10) < (now - sched_today) < timedelta(hours=2):
+                    if last_post_time < sched_today:
+                        print(f"⚠️ [Watchdog] ОБНАРУЖЕНА ЗАДЕРЖКА поста {t_str}! Форсирую запуск...")
+                        # Запускаем в отдельном потоке, чтобы не вешать цикл
+                        threading.Thread(target=safe_run_final, daemon=True).start()
+            
+        except Exception as e:
+            print(f"⚠️ Ошибка в цикле планировщика: {e}")
+            
+        time.sleep(30) # Проверка каждые 30 секунд
 
 # ─────────────────────────────────────────────
 # ОБРАБОТЧИКИ КОМАНД (для сервера)
@@ -1001,7 +1028,7 @@ if bot:
     def force_generate(message):
         bot.send_message(message.chat.id, "🎨 Начинаю внеплановую генерацию...")
         try:
-            run_final()
+            safe_run_final()
             bot.send_message(message.chat.id, "✅ Генерация завершена!")
         except Exception as e:
             bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
@@ -1009,19 +1036,15 @@ if bot:
 if __name__ == "__main__":
     import sys
     if "--server" in sys.argv:
-        print("🖥️ ЗАПУСК В РЕЖИМЕ СЕРВЕРА (Polling + Scheduler)")
-        # Запускаем планировщик в фоне
+        print("🖥️ ЗАПУСК В РЕЖИМЕ СЕРВЕРА (Polling + Watchdog)")
         t = threading.Thread(target=scheduler_thread, daemon=True)
         t.start()
         
-        # Запускаем бесконечную прослушку команд Телеграм
         if bot:
             print("🤖 Listening for commands...")
             bot.infinity_polling()
         else:
             print("❌ BOT_TOKEN не найден. Режим сервера невозможен.")
-            # Если токена нет, просто крутим цикл планировщика (хотя бы посты будут)
             while True: time.sleep(1)
     else:
-        # Обычный однократный запуск (для GitHub Actions)
         run_final()
