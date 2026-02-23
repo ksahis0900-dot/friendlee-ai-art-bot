@@ -582,14 +582,24 @@ def run_final():
         day_month = (now.day, now.month)
         
         holidays = {
-            (23, 2): "Defender of the Fatherland Day (Feb 23). Cinematic epic art of a heroic protector, warrior spirit, Russian landscape, military aesthetic, courage and strength.",
-            (8, 3): "International Women's Day (March 8). Beautiful flowers, spring atmosphere, elegance, feminine power, bright and soft colors, digital art masterpiece.",
             (1, 1): "New Year's Day. Magical winter atmosphere, festive lights, fireworks, cozy and epic celebrations.",
+            (2, 1): "New Year holidays. Winter magic, snowy city, festive mood.",
             (7, 1): "Orthodox Christmas. Spiritual and cozy winter atmosphere, stars, snowy village, golden light.",
-            (9, 5): "Victory Day (May 9). Heroic and respectful art, memory and glory, eternal flame, spring flowers, peaceful sky.",
-            (12, 6): "Russia Day. Beautiful Russian nature, tricolor aesthetic, vast fields and modern cities.",
-            (4, 11): "Unity Day. People together, strength in unity, historical and heroic aesthetic.",
-            (31, 12): "New Year Eve. Festive countdown, sparkling champagne, snowy night, magic everywhere."
+            (13, 1): "Old New Year. Retro winter aesthetic, nostalgic festive mood, snowy night.",
+            (25, 1): "Tatiana Day (Students' Day). Young energy, books and coffee, winter university atmosphere.",
+            (14, 2): "Valentine's Day. Romantic atmosphere, neon hearts, soft aesthetic, love and tenderness.",
+            (23, 2): "Defender of the Fatherland Day (Feb 23). Epic military art, heroic protector, warrior soul, Russian landscape, courage, strength and honor.",
+            (8, 3): "International Women's Day (March 8). Spring awakening, beautiful flowers, feminine elegance and power, soft bright colors.",
+            (12, 4): "Cosmonautics Day. Yuri Gagarin, Soviet space aesthetic, first man in space, stars and rockets, retro-futurism.",
+            (1, 5): "Spring and Labor Day. Sunny spring day, blossoming trees, joy, balloons and bright colors.",
+            (9, 5): "Victory Day (May 9). Eternal flame, St. George ribbon, memory and honor, peaceful sky, spring flowers, military parade aesthetic.",
+            (12, 6): "Russia Day. Vast landscapes from Ural to Vladivostok, tricolor flag aesthetic, modern and traditional Russia.",
+            (8, 7): "Family, Love and Fidelity Day. Chamomile flowers, warm family atmosphere, sunlit garden.",
+            (22, 8): "National Flag Day. Russian tricolor in creative ways, patriotic aesthetic, blue sky.",
+            (1, 9): "Knowledge Day. Golden autumn, school bells, books and backpacks, wise owl, library aesthetic.",
+            (5, 10): "Teacher's Day. Books, autumn leaves, wisdom, cozy workspace, flowers for teacher.",
+            (4, 11): "Unity Day. Historical heroic art, unity of people, Kremlin towers, traditional Russian spirit.",
+            (31, 12): "New Year Eve. Olivier salad atmosphere, sparkling tree, magic, snowy night, lights and happiness."
         }
         return holidays.get(day_month)
 
