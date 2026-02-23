@@ -173,41 +173,40 @@ def generate_text_pollinations(theme):
 def generate_text_kie(theme):
     if not KIE_KEY: return None
     print("🧠 Kie.ai пишет текст...")
-    endpoints = [
-        "https://api.kie.ai/api/v1/chat/completions",
-        "https://api.kie.ai/v1/chat/completions"
-    ]
     headers = {"Authorization": f"Bearer {KIE_KEY}", "Content-Type": "application/json"}
     prompt = (
         f"Напиши JSON пост про арт '{theme}'. ЯЗЫК: РУССКИЙ. "
         f"СТРУКТУРА: {{\"TITLE\": \"...\", \"CONCEPT\": \"...\", \"TAGS\": \"...\"}}. "
         f"Будь эмоциональным и используй много эмодзи!"
     )
-    # Актуальные модели Kie.ai для чата (февраль 2026)
-    models_to_try = ["gemini-2.0-flash", "gemini-2.5-flash-preview", "gpt-4o-mini", "gpt-4o", "deepseek-v3"]
-    for m_name in models_to_try:
+    # Актуальные модели Kie.ai (февраль 2026) — каждая со своим эндпоинтом
+    models_to_try = [
+        {"model": "deepseek-chat", "url": "https://api.kie.ai/api/v1/chat/completions"},
+        {"model": "gemini-2.5-flash", "url": "https://api.kie.ai/gemini-2.5-flash/v1/chat/completions"},
+    ]
+    for m in models_to_try:
         payload = {
-            "model": m_name,
+            "model": m["model"],
             "messages": [
                 {"role": "system", "content": "You are a creative SMM manager for an AI Art channel. Always respond in valid JSON format."},
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.8
         }
-        for url in endpoints:
-            try:
-                print(f"   👉 Пробуем модель {m_name} на {url}...")
-                r = requests.post(url, json=payload, headers=headers, timeout=60)
-                if r.status_code == 200:
-                    res_json = r.json()
-                    if 'choices' in res_json and len(res_json['choices']) > 0:
-                        return res_json['choices'][0]['message']['content']
-                elif r.status_code == 404:
-                    continue
-                else:
-                    print(f"      ⚠️ Ошибка {r.status_code}: {r.text[:100]}")
-                    break
-            except: pass
+        try:
+            print(f"   👉 Пробуем модель {m['model']}...")
+            r = requests.post(m["url"], json=payload, headers=headers, timeout=60)
+            if r.status_code == 200:
+                res_json = r.json()
+                if 'choices' in res_json and len(res_json['choices']) > 0:
+                    content = res_json['choices'][0]['message']['content']
+                    if content:
+                        print(f"   ✅ {m['model']} ответил!")
+                        return content
+            else:
+                print(f"      ⚠️ {m['model']} HTTP {r.status_code}: {r.text[:100]}")
+        except Exception as e:
+            print(f"      ⚠️ {m['model']} Exception: {e}")
     return None
 
 # ─────────────────────────────────────────────
@@ -825,20 +824,21 @@ def run_final():
             {"name": "Gemini Image (Google)",      "provider": "gemini",      "model": "gemini-2.0-flash-exp", "key": GOOGLE_KEY},
         ]
 
-        # ПРЕМИУМ МОДЕЛИ (Kie Nano Banana) — Только для праздников и Русской темы
+        # ПРЕМИУМ МОДЕЛИ (Kie) — Только для праздников и Русской темы
+        # ОБНОВЛЕНО: правильные model ID и provider типы (февраль 2026)
         KIE_NANO_FRONT = [
-            {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_image", "model": "nano-banana-pro", "key": KIE_KEY},
-            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_image", "model": "gpt-image-1.5",  "key": KIE_KEY},
-            {"name": "Kie.ai (Flux Kontext)",     "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
-            {"name": "Kie.ai (SDXL)",             "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
+            {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_jobs",     "model": "nano-banana-pro",            "key": KIE_KEY},
+            {"name": "Kie.ai (Nano Banana)",     "provider": "kie_jobs",     "model": "google/nano-banana",         "key": KIE_KEY},
+            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_4o",      "model": "gpt-image/1.5-text-to-image","key": KIE_KEY},
+            {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
         ]
-        
+
         # ОБЫЧНЫЕ KIE МОДЕЛИ — Для остальных случаев
         KIE_STANDARD_FRONT = [
-            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_image", "model": "gpt-image-1.5",  "key": KIE_KEY},
-            {"name": "Kie.ai (Flux Kontext)",     "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
-            {"name": "Kie.ai (SDXL)",             "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
-            {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_image", "model": "nano-banana-pro", "key": KIE_KEY},
+            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_4o",      "model": "gpt-image/1.5-text-to-image","key": KIE_KEY},
+            {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
+            {"name": "Kie.ai (Nano Banana)",     "provider": "kie_jobs",     "model": "google/nano-banana",         "key": KIE_KEY},
+            {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_jobs",     "model": "nano-banana-pro",            "key": KIE_KEY},
         ]
 
         # ЛОГИКА ОЧЕРЕДНОСТИ - Всегда KIE.ai первый, остальные как запасные
@@ -859,39 +859,52 @@ def run_final():
             if "Picsum" not in p_name: print(f"👉 Пробуем: {p_name}...")
 
             try:
-                if p_type == "kie_image":
+                # ── KIE.AI ПРОВАЙДЕРЫ (обновлено февраль 2026) ──
+                if p_type in ("kie_jobs", "kie_4o", "kie_flux"):
                     print(f"🎨 Kie.ai создание задачи ({model_cfg['model']})...")
+                    kie_headers = {"Authorization": f"Bearer {model_cfg['key']}", "Content-Type": "application/json"}
+                    task_id = None
                     try:
-                        payload = {"model": model_cfg['model'], "input": {"prompt": t, "aspect_ratio": "square", "size": "1024x1024"}}
-                        endpoints = ["https://api.kie.ai/api/v1/jobs/createTask", "https://api.kie.ai/v1/jobs/createTask"]
-                        r = None
-                        for ep in endpoints:
-                            r = requests.post(ep, json=payload, headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=60)
-                            if r.status_code != 404: break
-                        if r and r.status_code == 200:
+                        # Разные эндпоинты для разных типов моделей
+                        if p_type == "kie_4o":
+                            url = "https://api.kie.ai/api/v1/gpt4o-image/generate"
+                            payload = {"prompt": t}
+                        elif p_type == "kie_flux":
+                            url = "https://api.kie.ai/api/v1/flux/kontext/generate"
+                            payload = {"model": model_cfg['model'], "prompt": t}
+                        else:  # kie_jobs
+                            url = "https://api.kie.ai/api/v1/jobs/createTask"
+                            payload = {"model": model_cfg['model'], "input": {"prompt": t, "aspect_ratio": "1:1"}}
+
+                        r = requests.post(url, json=payload, headers=kie_headers, timeout=60)
+                        if r.status_code == 200:
                             res = r.json()
-                            task_id = res.get('taskId') or res.get('id')
-                            if not task_id and 'data' in res:
-                                d = res['data']
-                                if isinstance(d, dict): task_id = d.get('taskId') or d.get('id')
-                                elif isinstance(d, str): task_id = d
+                            if res.get('code') in [200, None]:
+                                d = res.get('data', {})
+                                if isinstance(d, dict):
+                                    task_id = d.get('taskId') or d.get('recordId') or d.get('id')
+                                elif isinstance(d, str):
+                                    task_id = d
+                                if not task_id:
+                                    task_id = res.get('taskId') or res.get('id')
+                            else:
+                                print(f"⚠️ Kie.ai API Error {res.get('code')}: {res.get('msg', '')[:150]}")
                         else:
-                            print(f"⚠️ Kie.ai Job Error {r.status_code if r else 'NoResp'}: {r.text[:200] if r else ''}")
-                            task_id = None
+                            print(f"⚠️ Kie.ai HTTP {r.status_code}: {r.text[:200]}")
+
                         if task_id:
                             print(f"⏳ Картинка в очереди (ID: {task_id}). Ожидаем...")
+                            poll_url = "https://api.kie.ai/api/v1/jobs/recordInfo"
                             for attempt in range(20):
                                 time.sleep(8)
-                                poll_endpoints = ["https://api.kie.ai/api/v1/jobs/recordInfo", "https://api.kie.ai/v1/jobs/recordInfo"]
-                                pr = None
-                                for pep in poll_endpoints:
-                                    pr = requests.get(f"{pep}?taskId={task_id}", headers={"Authorization": f"Bearer {model_cfg['key']}"}, timeout=30)
-                                    if pr.status_code != 404: break
+                                pr = requests.get(f"{poll_url}?taskId={task_id}", headers=kie_headers, timeout=30)
                                 if pr and pr.status_code == 200:
-                                    s_data = pr.json().get('data', {})
+                                    p_res = pr.json()
+                                    s_data = p_res.get('data', {})
                                     if not isinstance(s_data, dict): s_data = {}
+                                    state = s_data.get('state', '')
                                     if s_data.get('failCode') and str(s_data.get('failCode')) not in ['0', 'None', '']:
-                                        print(f"❌ Kie.ai Image Failed (failCode={s_data.get('failCode')})")
+                                        print(f"❌ Kie.ai Failed (failCode={s_data.get('failCode')})")
                                         break
                                     res_json_str = s_data.get('resultJson', '')
                                     if res_json_str:
@@ -903,6 +916,9 @@ def run_final():
                                                 print(f"✅ Kie.ai Image OK: {image_url}")
                                                 break
                                         except: pass
+                                    if state in ('fail', 'failed', 'error'):
+                                        print(f"❌ Kie.ai задача провалилась: state={state}")
+                                        break
                             if image_url: break
                     except Exception as ex:
                         print(f"⚠️ Kie.ai Image Exception: {ex}")
