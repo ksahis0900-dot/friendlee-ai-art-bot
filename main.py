@@ -13,6 +13,7 @@ from PIL import Image
 import schedule
 import threading
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 # Загружаем переменные из .env, если файл существует (для локального запуска и сервера)
 load_dotenv()
@@ -483,7 +484,11 @@ def run_final():
             "Vasilisa the Beautiful in Cyber-Armor", "Trans-Siberian Train in Space", "Golden Khokhloma Patterns on Mech",
             "Matryoshka Robot Swarm", "Winter Red Square in Solarpunk style", "Siberian Tiger with Crystal Eyes",
             "Traditional Tea Party with Holographic Bagels", "Bear playing Balalaika made of Glass",
-            "Zhostovo Style Cyber-Helmet", "Russian Winter Forest with Magical Lights", "Epic Slavic Warrior"
+            "Zhostovo Style Cyber-Helmet", "Russian Winter Forest with Magical Lights", "Epic Slavic Warrior",
+            "Baba Yaga's Hut on Cyber-Legs", "Firebird in a cage of lasers", "Domovoy as a smart-home AI",
+            "Bogatyr fighting a Giant Robot Snake", "Silver Hoof deer in a diamond mine",
+            "Russian Banya on a Space Station", "Balalaika concert in a neon-lit birch forest",
+            "Golden Cockerel as a satellite", "Snegurochka in a palace of eternal ice"
         ],
         "Extraordinary Places": [
             "Floating Temple above Clouds", "Crystal Cave City",
@@ -491,7 +496,7 @@ def run_final():
             "Steampunk London with Zeppelins", "Treehouse Village in Giant Forest",
             "Moon Village Observatory", "Desert Mirage Oasis", "Glass Bridge over Lava",
             "Ice Palace in Antarctica", "Cybernetic Colosseum", "Vertical Slums of Neo-Tokyo",
-            "Rainbow Waterfall City", "Zero-G Concert Hall", "Ancient Cave with Bioluminescence",
+            "Rainbow Waterfall City", "Zero-G Concert Hall", "Ancient Cave with Bioluminescence"
         ],
         "Fashion & Avant-Garde": [
             "Model in Liquid Glass Dress", "Cyber-Fashion Runway", "Mask made of Diamonds",
@@ -802,32 +807,33 @@ def run_final():
     provider_name = "Unknown"
 
     if not video_url:
-        IMAGE_MODELS = [
-            # TIER 1: KIE.AI
+        # ОСНОВНЫЕ МОДЕЛИ (Flux и другие)
+        FLUX_MODELS = [
+            {"name": "SiliconFlow (Flux Schnell)", "provider": "siliconflow", "model": "black-forest-labs/FLUX.1-schnell",       "key": SILICONFLOW_KEY},
+            {"name": "HuggingFace (Flux Schnell)", "provider": "huggingface", "model": "black-forest-labs/FLUX.1-schnell",       "key": HF_KEY},
+            {"name": "Cloudflare (Flux Schnell)",  "provider": "cloudflare",  "model": "@cf/black-forest-labs/flux-1-schnell",   "key": CLOUDFLARE_ID},
+            {"name": "Airforce (Flux 1.1 Pro)",   "provider": "airforce",    "model": "flux-1.1-pro",    "key": True},
+            {"name": "Pollinations (Flux Realism)","provider": "pollinations","model": "flux-realism",    "key": True},
+            {"name": "Laozhang (DALL-E 3)",       "provider": "laozhang",    "model": "dall-e-3",                              "key": LAOZHANG_KEY},
+            {"name": "Runware (100@1)",            "provider": "runware",     "model": "runware:100@1",                         "key": RUNWARE_KEY},
+            {"name": "Gemini Image (Google)",      "provider": "gemini",      "model": "gemini-2.0-flash-exp", "key": GOOGLE_KEY},
+        ]
+
+        # ПРЕМИУМ МОДЕЛИ (Kie Nano Banana) — Только для праздников и Русской темы
+        KIE_MODELS = [
             {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_image", "model": "nano-banana-pro", "key": KIE_KEY},
             {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_image", "model": "gpt-image-1.5",  "key": KIE_KEY},
             {"name": "Kie.ai (Flux Kontext)",     "provider": "kie_image", "model": "flux-1-kontext", "key": KIE_KEY},
-            {"name": "Kie.ai (SDXL)",             "provider": "kie_image", "model": "stable-diffusion-xl", "key": KIE_KEY},
-            # TIER 2: PAID KEYS
-            {"name": "Laozhang (DALL-E 3)",       "provider": "laozhang",    "model": "dall-e-3",                              "key": LAOZHANG_KEY},
-            {"name": "SiliconFlow (Flux Schnell)", "provider": "siliconflow", "model": "black-forest-labs/FLUX.1-schnell",       "key": SILICONFLOW_KEY},
-            {"name": "Runware (100@1)",            "provider": "runware",     "model": "runware:100@1",                         "key": RUNWARE_KEY},
-            {"name": "HuggingFace (Flux Schnell)", "provider": "huggingface", "model": "black-forest-labs/FLUX.1-schnell",       "key": HF_KEY},
-            {"name": "Cloudflare (Flux Schnell)",  "provider": "cloudflare",  "model": "@cf/black-forest-labs/flux-1-schnell",   "key": CLOUDFLARE_ID},
-            # TIER 3: FREE
-            {"name": "Airforce (Flux 1.1 Pro)",   "provider": "airforce",    "model": "flux-1.1-pro",    "key": True},
-            {"name": "Airforce (Flux 1 Dev)",      "provider": "airforce",    "model": "flux-1-dev",      "key": True},
-            {"name": "Airforce (Flux Schnell)",    "provider": "airforce",    "model": "flux-1-schnell",  "key": True},
-            {"name": "Airforce (Any Dark)",        "provider": "airforce",    "model": "any-dark",        "key": True},
-            {"name": "Pollinations (Flux Realism)","provider": "pollinations","model": "flux-realism",    "key": True},
-            {"name": "Pollinations (Midjourney)",  "provider": "pollinations","model": "midjourney",      "key": True},
-            {"name": "Pollinations (Flux)",        "provider": "pollinations","model": "flux",            "key": True},
-            {"name": "Pollinations (Turbo)",       "provider": "pollinations","model": "turbo",           "key": True},
-            # TIER 4: FALLBACKS
-            {"name": "Gemini Image (Google)",      "provider": "gemini",      "model": "gemini-2.0-flash-exp", "key": GOOGLE_KEY},
-            {"name": "AI Horde (SDXL Beta)",       "provider": "horde",       "model": "SDXL_beta_examples",   "key": True},
-            {"name": "Picsum (Stock Photo)",        "provider": "picsum",      "model": "photo",                "key": True},
         ]
+
+        # ЛОГИКА ОЧЕРЕДНОСТИ
+        is_rus_theme = selected_category == "Russian Spirit & Traditions"
+        if holiday_theme or is_rus_theme:
+            print("🌟 ПРИОРИТЕТ: Праздник или Русская тема. Используем Kie Nano Banana.")
+            IMAGE_MODELS = KIE_MODELS + FLUX_MODELS
+        else:
+            print("🎨 ОБЫЧНЫЙ РЕЖИМ: Используем Flux.")
+            IMAGE_MODELS = FLUX_MODELS + KIE_MODELS
 
         print(f"🎨 Начинаем генерацию. Доступно провайдеров: {len(IMAGE_MODELS)}")
 
