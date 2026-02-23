@@ -842,7 +842,7 @@ def run_final():
         ]
 
         # ЛОГИКА ОЧЕРЕДНОСТИ - Всегда KIE.ai первый, остальные как запасные
-        is_rus_theme = selected_category == "Russian Spirit & Traditions"
+        is_rus_theme = chosen_category == "Russian Spirit & Traditions"
         if holiday_theme or is_rus_theme:
             print("🌟 ПРИОРИТЕТ: Праздник/Традиции. Используем Kie Nano Banana первым.")
             IMAGE_MODELS = KIE_NANO_FRONT + FLUX_MODELS
