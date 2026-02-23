@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  art-bot:
+    build: .
+    container_name: friendlee-art-bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/.venv # Игнорируем локальную виртуалку
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10mb"
+        max-file: "3"
+
+# В будущем сюда легко добавить nginx для твоих сайтов:
+#  nginx:
+#    image: nginx:latest
+#    ports:
+#      - "80:80"
+#      - "443:443"

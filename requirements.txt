@@ -3,3 +3,7 @@ requests
 Pillow
 google-generativeai
 feedparser
+schedule
+python-dotenv
+pandas
+openpyxl

@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Logs
+*.log
+*_log.txt
+log.txt
+seen_subjects.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+current_runs.txt
+run_list.txt
+runs.txt
+files.zip

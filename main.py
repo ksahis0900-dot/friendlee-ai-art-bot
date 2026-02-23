@@ -10,6 +10,12 @@ import json
 import time
 import io
 from PIL import Image
+import schedule
+import threading
+from dotenv import load_dotenv
+
+# Загружаем переменные из .env, если файл существует (для локального запуска и сервера)
+load_dotenv()
 
 # --- КОНФИГУРАЦИЯ (Берем из секретов GitHub) ---
 GOOGLE_KEY = os.environ.get('GOOGLE_KEY')
@@ -900,5 +906,71 @@ def run_final():
                 raise
 
 
+# ─────────────────────────────────────────────
+# ПЛАНИРОВЩИК ДЛЯ СЕРВЕРА
+# ─────────────────────────────────────────────
+
+def scheduler_thread():
+    """Запускает планировщик в фоновом потоке"""
+    print("⏰ Внутренний планировщик запущен...")
+    
+    # Расписание дублирует логику GitHub Actions (МСК время)
+    # АРТ: 09:07, 14:07, 19:07, 21:07
+    schedule.every().day.at("09:07").do(run_final)
+    schedule.every().day.at("14:07").do(run_final)
+    schedule.every().day.at("19:07").do(run_final)
+    schedule.every().day.at("21:07").do(run_final)
+    
+    # ВИДЕО: Воскресенье 22:07
+    def check_sunday_video():
+        from datetime import datetime
+        if datetime.now().weekday() == 6: # Sunday
+            print("🎬 Воскресное видео по расписанию!")
+            # Имитируем флаг видео
+            sys.argv.append("--video")
+            run_final()
+            sys.argv.remove("--video")
+
+    schedule.every().sunday.at("22:07").do(check_sunday_video)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+# ─────────────────────────────────────────────
+# ОБРАБОТЧИКИ КОМАНД (для сервера)
+# ─────────────────────────────────────────────
+
+if bot:
+    @bot.message_handler(commands=['start', 'help'])
+    def send_welcome(message):
+        bot.reply_to(message, "🚀 <b>Бот работает на сервере!</b>\n\nМогу делать посты по расписанию и выполнять команды.\n/generate — форсировать создание арта", parse_mode='HTML')
+
+    @bot.message_handler(commands=['generate'])
+    def force_generate(message):
+        bot.send_message(message.chat.id, "🎨 Начинаю внеплановую генерацию...")
+        try:
+            run_final()
+            bot.send_message(message.chat.id, "✅ Генерация завершена!")
+        except Exception as e:
+            bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
+
 if __name__ == "__main__":
-    run_final()
+    import sys
+    if "--server" in sys.argv:
+        print("🖥️ ЗАПУСК В РЕЖИМЕ СЕРВЕРА (Polling + Scheduler)")
+        # Запускаем планировщик в фоне
+        t = threading.Thread(target=scheduler_thread, daemon=True)
+        t.start()
+        
+        # Запускаем бесконечную прослушку команд Телеграм
+        if bot:
+            print("🤖 Listening for commands...")
+            bot.infinity_polling()
+        else:
+            print("❌ BOT_TOKEN не найден. Режим сервера невозможен.")
+            # Если токена нет, просто крутим цикл планировщика (хотя бы посты будут)
+            while True: time.sleep(1)
+    else:
+        # Обычный однократный запуск (для GitHub Actions)
+        run_final()
