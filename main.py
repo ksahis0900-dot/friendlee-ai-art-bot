@@ -488,7 +488,13 @@ def run_final():
             "Baba Yaga's Hut on Cyber-Legs", "Firebird in a cage of lasers", "Domovoy as a smart-home AI",
             "Bogatyr fighting a Giant Robot Snake", "Silver Hoof deer in a diamond mine",
             "Russian Banya on a Space Station", "Balalaika concert in a neon-lit birch forest",
-            "Golden Cockerel as a satellite", "Snegurochka in a palace of eternal ice"
+            "Golden Cockerel as a satellite", "Snegurochka in a palace of eternal ice",
+            "Gzhel Patterns on a Space Suit", "Mezen Horse in a digital sunset",
+            "Lake Baikal with crystal underwater cities", "Valley of Geysers with steam-born spirits",
+            "Mount Elbrus as a titan made of ice", "Ural Mountains with hidden dwarf forges",
+            "Kolobok as a small exploratory rover", "Sadko playing dulcimer in a bioluminescent sea",
+            "The Tsar-Cannon firing plasma pulses", "The Tsar-Bell as a resonant sound weapon",
+            "Finist the Bright Falcon with mechanical wings", "Ivan Tsarevich on a Grey Wolf motorcycle"
         ],
         "Extraordinary Places": [
             "Floating Temple above Clouds", "Crystal Cave City",
