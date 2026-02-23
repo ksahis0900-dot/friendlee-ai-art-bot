@@ -74,8 +74,37 @@ RUSSIAN_GRAMMAR_PROMPT = (
 )
 
 # ─────────────────────────────────────────────
-# ГЕНЕРАЦИЯ ТЕКСТА
+# ПАМЯТЬ ОШИБОК (ERROR LOG)
 # ─────────────────────────────────────────────
+ERROR_MEMORY_FILE = "error_memory.json"
+
+def log_error(provider, error_msg):
+    try:
+        data = {}
+        if os.path.exists(ERROR_MEMORY_FILE):
+            with open(ERROR_MEMORY_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        
+        entry = data.get(provider, {"count": 0, "errors": []})
+        entry["count"] += 1
+        entry["last_error"] = str(error_msg)
+        entry["timestamp"] = datetime.now().isoformat()
+        if entry["count"] > 10: entry["errors"] = entry["errors"][-10:] # Храним последние 10
+        entry["errors"].append(str(error_msg))
+        
+        data[provider] = entry
+        with open(ERROR_MEMORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"⚠️ Ошибка при записи в память: {e}")
+
+def get_error_status(provider):
+    if not os.path.exists(ERROR_MEMORY_FILE): return 0
+    try:
+        with open(ERROR_MEMORY_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return data.get(provider, {}).get("count", 0)
+    except: return 0
 
 def generate_text(theme):
     if not GOOGLE_KEY: return None
@@ -448,6 +477,15 @@ def run_final():
             "Neon Jungle", "Mars Colony Greenhouse", "Vertical Forest City", "Gothic Cathedral in Space",
             "Brutalist Concrete Bunker", "Art Deco Spaceport", "Pyramid of Glass", "Infinite Hallway",
             "Japanese Shrine in Fog", "Abandoned Amusement Park", "Underground Neon Market",
+        ],
+        "Russian Spirit & Traditions": [
+            "Ancient Wooden Church in Snowy Forest", "Cyber-Samovar with Neon Steam", "Russian Fairytale Village",
+            "Vasilisa the Beautiful in Cyber-Armor", "Trans-Siberian Train in Space", "Golden Khokhloma Patterns on Mech",
+            "Matryoshka Robot Swarm", "Winter Red Square in Solarpunk style", "Siberian Tiger with Crystal Eyes",
+            "Traditional Tea Party with Holographic Bagels", "Bear playing Balalaika made of Glass",
+            "Zhostovo Style Cyber-Helmet", "Russian Winter Forest with Magical Lights", "Epic Slavic Warrior"
+        ],
+        "Extraordinary Places": [
             "Floating Temple above Clouds", "Crystal Cave City",
             "San Francisco year 2100", "Floating Venice of the Future", "Mayan Temple with Holograms",
             "Steampunk London with Zeppelins", "Treehouse Village in Giant Forest",
@@ -688,9 +726,11 @@ def run_final():
     print("📝 Генерирую текст под тему...")
     raw = generate_text_kie(t_prompt)
     if not raw:
+        log_error("kie_text", "Kie text generation returned None")
         print("⚠️ Kie молчит. Пробую Groq...")
         raw = generate_text_groq(t_prompt)
     if not raw:
+        log_error("groq_text", "Groq text generation returned None")
         print("⚠️ Groq молчит. Пробую OpenRouter...")
         raw = generate_text_openrouter(t_prompt)
     if not raw:
@@ -699,8 +739,13 @@ def run_final():
         gemini_prompt = f"Post JSON about {t_prompt} in Russian. {{'TITLE':'...', 'CONCEPT':'...', 'TAGS':'...'}} {RUSSIAN_GRAMMAR_PROMPT}"
         raw = generate_text(gemini_prompt)
     if not raw:
+        log_error("pollinations_text", "Pollinations text generation returned None")
         print("⚠️ Все молчат. Пробую Pollinations AI...")
         raw = generate_text_pollinations(t_prompt)
+    
+    if not raw:
+        log_error("all_text_fallback", "ALL text generation providers failed.")
+        print("❌ КРИТИЧЕСКАЯ ОШИБКА: Ни одна нейросеть не смогла написать текст.")
 
     # Парсинг JSON
     title, concept, tags = None, None, None
@@ -890,6 +935,7 @@ def run_final():
                     url = f"https://image.pollinations.ai/prompt/{encoded}?width=1024&height=1024&model={model_cfg['model']}&nologo=true&seed={seed}"
                     r = requests.get(url, timeout=60)
                     if r.status_code == 200 and len(r.content) > 5000: image_data = io.BytesIO(r.content)
+                    else: log_error(p_type, f"HTTP {r.status_code} or small content: {r.text[:200]}")
 
                 elif p_type == "gemini":
                     image_data = generate_image_gemini(t)
@@ -907,18 +953,24 @@ def run_final():
                             if stat['done']:
                                 image_url = stat['generations'][0]['img']
                                 break
+                        if not image_url:
+                            log_error(p_type, "Timeout or no result after polling.")
+                    else: log_error(p_type, f"HTTP {r.status_code}: {r.text[:200]}")
 
                 elif p_type == "picsum":
                     r = requests.get(f"https://picsum.photos/seed/{random.randint(1,1000)}/1024/1024")
                     if r.status_code == 200: image_data = io.BytesIO(r.content)
+                    else: log_error(p_type, f"HTTP {r.status_code}: {r.text[:200]}")
 
                 if image_url or image_data:
                     provider_name = p_name
                     print(f"✅ УСПЕХ! Генерация выполнена через: {p_name}")
                     break
+                else:
+                    log_error(p_type, f"{p_name} failed to return image data/url")
 
             except Exception as e:
-                print(f"⚠️ {p_name} Error: {e}")
+                log_error(p_type, str(e))
                 continue
 
     # ── ОТПРАВКА ──
@@ -1034,7 +1086,6 @@ if bot:
             bot.send_message(message.chat.id, f"❌ Ошибка: {e}")
 
 if __name__ == "__main__":
-    import sys
     if "--server" in sys.argv:
         print("🖥️ ЗАПУСК В РЕЖИМЕ СЕРВЕРА (Polling + Watchdog)")
         t = threading.Thread(target=scheduler_thread, daemon=True)
@@ -1046,5 +1097,11 @@ if __name__ == "__main__":
         else:
             print("❌ BOT_TOKEN не найден. Режим сервера невозможен.")
             while True: time.sleep(1)
+    elif "--test" in sys.argv:
+        print("🧪 ЗАПУСК ПРИНУДИТЕЛЬНОГО ТЕСТА...")
+        # Принудительно ставим категорию
+        sys.argv.append("--custom-prompt")
+        sys.argv.append("Russian Fairytale Village, hyper-realistic, russian spirit aesthetic, 8k")
+        run_final()
     else:
         run_final()
