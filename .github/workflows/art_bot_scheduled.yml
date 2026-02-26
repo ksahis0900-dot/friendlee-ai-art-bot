@@ -57,6 +57,7 @@ jobs:
           GROQ_KEY: ${{ secrets.GROQ_KEY }}
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
           LAOZHANG_KEY: ${{ secrets.LAOZHANG_KEY }}
+          NVIDIA_KEY: ${{ secrets.NVIDIA_KEY }}
           YOUR_SIGNATURE: "@fRieNDLee34"
         run: |
           # ──────────────────────────────────────────────────────────────────

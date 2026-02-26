@@ -29,6 +29,7 @@ CLOUDFLARE_TOKEN = os.environ.get('CLOUDFLARE_TOKEN')
 GROQ_KEY = os.environ.get('GROQ_KEY')
 OPENROUTER_KEY = os.environ.get('OPENROUTER_KEY')
 LAOZHANG_KEY = os.environ.get('LAOZHANG_KEY')
+NVIDIA_KEY = os.environ.get('NVIDIA_KEY')
 
 TOKEN = os.environ.get('BOT_TOKEN')
 CHANNEL_ID = os.environ.get('CHANNEL_ID')
@@ -169,6 +170,33 @@ def generate_text_pollinations(theme):
     except Exception as e:
         print(f"Pollinations Text Error: {e}")
         return None
+
+def generate_text_nvidia(theme):
+    if not NVIDIA_KEY: return None
+    print("🟢 NVIDIA NIM пишет текст (Llama 3.3 70B)...")
+    url = "https://integrate.api.nvidia.com/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {NVIDIA_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": "meta/llama-3.3-70b-instruct",
+        "messages": [
+            {"role": "system", "content": "You are a creative SMM manager for an AI Art Telegram channel. Always respond in valid JSON format only, no extra text."},
+            {"role": "user", "content": theme}
+        ],
+        "temperature": 0.85,
+        "max_tokens": 400
+    }
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=30)
+        if r.status_code == 200:
+            content = r.json()['choices'][0]['message']['content']
+            if content:
+                print("   ✅ NVIDIA ответил!")
+                return content
+        else:
+            print(f"   ⚠️ NVIDIA HTTP {r.status_code}: {r.text[:100]}")
+    except Exception as e:
+        print(f"   ⚠️ NVIDIA Exception: {e}")
+    return None
 
 def generate_text_kie(theme):
     if not KIE_KEY: return None
@@ -734,7 +762,11 @@ def run_final():
         t_prompt = f"Write a creative Telegram post for the theme: {t}. Format: JSON with TITLE, CONCEPT, TAGS. {RUSSIAN_GRAMMAR_PROMPT}"
 
     print("📝 Генерирую текст под тему...")
-    raw = generate_text_kie(t_prompt)
+    raw = generate_text_nvidia(t_prompt)
+    if not raw:
+        log_error("nvidia_text", "NVIDIA text generation returned None")
+        print("⚠️ NVIDIA молчит. Пробую Kie.ai...")
+        raw = generate_text_kie(t_prompt)
     if not raw:
         log_error("kie_text", "Kie text generation returned None")
         print("⚠️ Kie молчит. Пробую Groq...")
