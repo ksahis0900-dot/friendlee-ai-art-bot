@@ -179,7 +179,7 @@ def generate_text_nvidia(theme):
     payload = {
         "model": "meta/llama-3.3-70b-instruct",
         "messages": [
-            {"role": "system", "content": "You are a creative SMM manager for an AI Art Telegram channel. Always respond in valid JSON format only, no extra text."},
+            {"role": "system", "content": "You are a creative SMM manager for an AI Art Telegram channel. Always respond in valid JSON format only, no extra text. For TAGS field: use CamelCase hashtags with NO spaces inside (e.g. #AIArt #DigitalDreams #NeonCity). Never write #AI Art or #Digital Dreams — always merge words."},
             {"role": "user", "content": theme}
         ],
         "temperature": 0.85,
@@ -623,6 +623,33 @@ def run_final():
             "Tribal Mask with glowing eyes", "Chinese Dragon in the clouds",
             "Cossack in the snowy steppe", "Japanese Tea Ceremony in autumn",
         ],
+        "Absurd & Unique Mix": [
+            "A tax inspector auditing a dragon's gold hoard",
+            "Quantum physicist explaining Schrödinger's cat to the actual cat",
+            "A medieval knight frustrated by slow Wi-Fi in his castle",
+            "Grandmother knitting a black hole with glowing needles",
+            "A penguin CEO presenting quarterly iceberg losses to the board",
+            "Death taking a selfie on vacation at the beach",
+            "A bureaucrat stamping forms at the edge of the universe",
+            "Opera singer whose voice accidentally cracks reality",
+            "A samurai carefully parallel-parking a spacecraft",
+            "Librarian who IS the library — shelves growing from her spine",
+            "Postman delivering letters to ghosts in an abandoned city",
+            "A philosopher arguing with a mirror that has better arguments",
+            "Traffic warden giving a ticket to a time machine parked in 1887",
+            "Chef cooking a five-star meal out of pure mathematics",
+            "A bear filing taxes while wearing reading glasses",
+            "Ancient Egyptian god working nightshift at a 24h convenience store",
+            "Astronaut growing potatoes on the moon and complaining about soil pH",
+            "Dentist for skeletons — only bones, no pain",
+            "Wedding photographer at a wedding between two black holes",
+            "A robot therapist having an existential crisis mid-session",
+            "Mermaid trying to fold laundry underwater",
+            "Norse god Thor stuck in IKEA assembly instructions",
+            "A cactus detective solving desert noir crimes",
+            "Baby dragon learning to sneeze without burning the school",
+            "Barista on Mars arguing about the perfect espresso gravity",
+        ],
     }
 
     style_groups = {
@@ -711,14 +738,31 @@ def run_final():
         s = "Holiday Celebration"
         t_prompt = f"Напиши торжественный, ГРАМОТНЫЙ и душевный поздравительный пост на РУССКОМ языке про {t}. Праздник сегодня! Используй красивые метафоры и много тематических эмодзи. Структура JSON: TITLE, CONCEPT, TAGS."
     else:
-        # ... (обычная логика выбора темы)
-        chosen_category = random.choice(list(categories.keys()))
-        s = random.choice(categories[chosen_category])
-        for _ in range(20):
-            if s in history:
-                chosen_category = random.choice(list(categories.keys()))
-                s = random.choice(categories[chosen_category])
-            else: break
+        # Категории с пониженным весом (уже надоели)
+        low_weight_cats = {"Russian Spirit & Traditions", "Cyberpunk & Sci-Fi"}
+        all_cats = list(categories.keys())
+        # Строим взвешенный список: low_weight получают вес 1, остальные — 3
+        weighted_cats = []
+        for cat in all_cats:
+            weighted_cats.extend([cat] * (1 if cat in low_weight_cats else 3))
+
+        # 40% шанс — кросс-микс двух разных категорий
+        use_crossmix = random.random() < 0.40
+        if use_crossmix:
+            cat_a = random.choice(weighted_cats)
+            cat_b = random.choice([c for c in weighted_cats if c != cat_a])
+            subj_a = random.choice(categories[cat_a])
+            subj_b = random.choice(categories[cat_b])
+            s = f"{subj_a} meets {subj_b}"
+            chosen_category = f"{cat_a} × {cat_b}"
+        else:
+            chosen_category = random.choice(weighted_cats)
+            s = random.choice(categories[chosen_category])
+            for _ in range(20):
+                if s in history:
+                    chosen_category = random.choice(weighted_cats)
+                    s = random.choice(categories[chosen_category])
+                else: break
         save_to_history(s)
 
         if chosen_category in ["Cyberpunk & Sci-Fi", "Space & Cosmos"]:
@@ -813,8 +857,20 @@ def run_final():
     title = force_emoji(title, emojis)
     concept = force_emoji(concept, emojis)
 
+    def clean_tags(tags_str):
+        import re
+        tokens = re.split(r'[\s,;|]+', str(tags_str or ''))
+        result = []
+        for t in tokens:
+            t = t.strip().lstrip('#')
+            t = re.sub(r'[\s\-&]+', '', t)
+            if len(t) > 1:
+                result.append(f'#{t}')
+        return ' '.join(result[:6]) or '#AIArt'
+
     def esc(x): return str(x or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    caption = f"✨ <b>{esc(title)}</b>\n\n{esc(concept)}\n\n{esc(tags) or '#AIArt'}\n\n{YOUR_SIGNATURE}"
+    tags_clean = clean_tags(tags)
+    caption = f"✨ <b>{esc(title)}</b>\n\n{esc(concept)}\n\n{tags_clean}\n\n{YOUR_SIGNATURE}"
     if len(caption) > 1024: caption = caption[:1010] + "..."
 
     # Формируем target
