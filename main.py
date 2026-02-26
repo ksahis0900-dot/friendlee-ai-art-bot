@@ -746,15 +746,22 @@ def run_final():
         for cat in all_cats:
             weighted_cats.extend([cat] * (1 if cat in low_weight_cats else 3))
 
-        # 40% шанс — кросс-микс двух разных категорий
-        use_crossmix = random.random() < 0.40
+        # 75% шанс — кросс-микс двух (или трёх) разных категорий
+        use_crossmix = random.random() < 0.75
         if use_crossmix:
             cat_a = random.choice(weighted_cats)
             cat_b = random.choice([c for c in weighted_cats if c != cat_a])
             subj_a = random.choice(categories[cat_a])
             subj_b = random.choice(categories[cat_b])
-            s = f"{subj_a} meets {subj_b}"
-            chosen_category = f"{cat_a} × {cat_b}"
+            # 25% шанс добавить третий элемент из ещё одной категории
+            if random.random() < 0.25:
+                cat_c = random.choice([c for c in weighted_cats if c not in (cat_a, cat_b)])
+                subj_c = random.choice(categories[cat_c])
+                s = f"{subj_a} meets {subj_b} with a touch of {subj_c}"
+                chosen_category = f"{cat_a} × {cat_b} × {cat_c}"
+            else:
+                s = f"{subj_a} meets {subj_b}"
+                chosen_category = f"{cat_a} × {cat_b}"
         else:
             chosen_category = random.choice(weighted_cats)
             s = random.choice(categories[chosen_category])
@@ -921,12 +928,12 @@ def run_final():
             {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
         ]
 
-        # ОБЫЧНЫЕ KIE МОДЕЛИ — Для остальных случаев
+        # ОБЫЧНЫЕ KIE МОДЕЛИ — Nano Banana первый (самый быстрый и стабильный)
         KIE_STANDARD_FRONT = [
-            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_4o",      "model": "gpt-image/1.5-text-to-image","key": KIE_KEY},
-            {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
             {"name": "Kie.ai (Nano Banana)",     "provider": "kie_jobs",     "model": "google/nano-banana",         "key": KIE_KEY},
             {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_jobs",     "model": "nano-banana-pro",            "key": KIE_KEY},
+            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_4o",      "model": "gpt-image/1.5-text-to-image","key": KIE_KEY},
+            {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
         ]
 
         # ЛОГИКА ОЧЕРЕДНОСТИ - Всегда KIE.ai первый, остальные как запасные
