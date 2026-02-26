@@ -6,11 +6,13 @@ __pycache__/
 venv/
 ENV/
 
-# Logs
+# Logs & runtime files
 *.log
 *_log.txt
 log.txt
+bot_run.log
 seen_subjects.txt
+error_memory.json
 
 # OS
 .DS_Store
@@ -21,3 +23,14 @@ current_runs.txt
 run_list.txt
 runs.txt
 files.zip
+
+# Local tools & artifacts (not part of bot)
+null
+*.pdf
+content_arsenal.html
+content_arsenal_pdf.py
+create_fpdf_report.py
+
+# Claude Code & local tooling
+.claude/
+.playwright-mcp/

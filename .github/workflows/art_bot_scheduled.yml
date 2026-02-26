@@ -49,7 +49,6 @@ jobs:
           GOOGLE_KEY: ${{ secrets.GOOGLE_KEY }}
           SILICONFLOW_KEY: ${{ secrets.SILICONFLOW_KEY }}
           RUNWARE_KEY: ${{ secrets.RUNWARE_KEY }}
-          # ИСПРАВЛЕНО: KIE_KEY обновлён — обновите секрет в GitHub Settings
           KIE_KEY: ${{ secrets.KIE_KEY }}
           HF_KEY: ${{ secrets.HF_KEY }}
           CLOUDFLARE_ID: ${{ secrets.CLOUDFLARE_ID }}
