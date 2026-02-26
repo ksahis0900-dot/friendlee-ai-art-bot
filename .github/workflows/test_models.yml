@@ -2,6 +2,17 @@ name: Test Models Comparison
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Which model to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - grok
+          - ideogram
+          - zimage
 
 jobs:
   test:
@@ -21,4 +32,4 @@ jobs:
           KIE_KEY: ${{ secrets.KIE_KEY }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-        run: PYTHONIOENCODING=utf-8 python test_models.py
+        run: PYTHONIOENCODING=utf-8 python test_models.py ${{ github.event.inputs.mode }}

@@ -122,20 +122,30 @@ def test_model(name: str, model_id: str, input_payload: dict):
 
 
 if __name__ == "__main__":
-    print("🚀 Starting model comparison test...\n")
+    import sys
+    # Usage: python test_models.py [grok|ideogram|zimage|all]
+    mode = sys.argv[1] if len(sys.argv) > 1 else "all"
+    print(f"🚀 Starting model test (mode={mode})...\n")
     print(f"Prompt: {PROMPT[:80]}...\n")
 
-    # Test 1: Grok Imagine
-    test_model(
-        name="Grok Imagine",
-        model_id="grok-imagine/text-to-image",
-        input_payload={"prompt": PROMPT, "aspect_ratio": "1:1"}
-    )
+    if mode in ("zimage", "all"):
+        test_model(
+            name="z-image",
+            model_id="z-image",
+            input_payload={"prompt": PROMPT, "aspect_ratio": "1:1"}
+        )
 
-    # Test 2: Ideogram v3 TURBO
-    test_model(
-        name="Ideogram v3 TURBO",
-        model_id="ideogram/v3-text-to-image",
+    if mode in ("grok", "all"):
+        test_model(
+            name="Grok Imagine",
+            model_id="grok-imagine/text-to-image",
+            input_payload={"prompt": PROMPT, "aspect_ratio": "1:1"}
+        )
+
+    if mode in ("ideogram", "all"):
+        test_model(
+            name="Ideogram v3 TURBO",
+            model_id="ideogram/v3-text-to-image",
         input_payload={
             "prompt": PROMPT,
             "rendering_speed": "TURBO",
