@@ -3,6 +3,7 @@ Test script: Grok Imagine vs Ideogram v3 TURBO quality comparison
 Sends both images to Telegram channel
 """
 import os, requests, json, time
+from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,7 +27,7 @@ PROMPT = (
 )
 
 
-def create_task(model: str, input_payload: dict) -> str | None:
+def create_task(model: str, input_payload: dict) -> Optional[str]:
     payload = {"model": model, "input": input_payload}
     try:
         r = requests.post(KIE_CREATE, json=payload, headers=HEADERS, timeout=60)
@@ -46,7 +47,7 @@ def create_task(model: str, input_payload: dict) -> str | None:
     return None
 
 
-def poll_task(task_id: str, timeout_s: int = 180) -> str | None:
+def poll_task(task_id: str, timeout_s: int = 180) -> Optional[str]:
     deadline = time.time() + timeout_s
     attempt = 0
     while time.time() < deadline:
