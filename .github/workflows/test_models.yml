@@ -1,0 +1,24 @@
+name: Test Models Comparison
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install deps
+        run: pip install requests python-dotenv
+
+      - name: Run model test
+        env:
+          KIE_KEY: ${{ secrets.KIE_KEY }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+        run: PYTHONIOENCODING=utf-8 python test_models.py
