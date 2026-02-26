@@ -746,22 +746,23 @@ def run_final():
         for cat in all_cats:
             weighted_cats.extend([cat] * (1 if cat in low_weight_cats else 3))
 
-        # 75% шанс — кросс-микс двух (или трёх) разных категорий
-        use_crossmix = random.random() < 0.75
+        # 80% шанс — кросс-микс из 5 разных категорий
+        use_crossmix = random.random() < 0.80
         if use_crossmix:
-            cat_a = random.choice(weighted_cats)
-            cat_b = random.choice([c for c in weighted_cats if c != cat_a])
-            subj_a = random.choice(categories[cat_a])
-            subj_b = random.choice(categories[cat_b])
-            # 25% шанс добавить третий элемент из ещё одной категории
-            if random.random() < 0.25:
-                cat_c = random.choice([c for c in weighted_cats if c not in (cat_a, cat_b)])
-                subj_c = random.choice(categories[cat_c])
-                s = f"{subj_a} meets {subj_b} with a touch of {subj_c}"
-                chosen_category = f"{cat_a} × {cat_b} × {cat_c}"
-            else:
-                s = f"{subj_a} meets {subj_b}"
-                chosen_category = f"{cat_a} × {cat_b}"
+            used_cats, subjects = [], []
+            for _ in range(5):
+                available = [c for c in weighted_cats if c not in used_cats]
+                if not available:
+                    break
+                cat = random.choice(available)
+                used_cats.append(cat)
+                subjects.append(random.choice(categories[cat]))
+            connectors = ["meets", "collides with", "fused with", "reimagined as", "inside"]
+            parts = [subjects[0]]
+            for i, subj in enumerate(subjects[1:]):
+                parts.append(f"{connectors[i % len(connectors)]} {subj}")
+            s = " ".join(parts)
+            chosen_category = " × ".join(used_cats)
         else:
             chosen_category = random.choice(weighted_cats)
             s = random.choice(categories[chosen_category])
@@ -920,20 +921,19 @@ def run_final():
         ]
 
         # ПРЕМИУМ МОДЕЛИ (Kie) — Только для праздников и Русской темы
-        # ОБНОВЛЕНО: правильные model ID и provider типы (февраль 2026)
+        # Flux 2 Pro — лучшее качество для торжественных/русских тематик
         KIE_NANO_FRONT = [
+            {"name": "Kie.ai (Flux 2 Pro)",      "provider": "kie_jobs",     "model": "flux-2/pro-text-to-image",   "key": KIE_KEY},
             {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_jobs",     "model": "nano-banana-pro",            "key": KIE_KEY},
             {"name": "Kie.ai (Nano Banana)",     "provider": "kie_jobs",     "model": "google/nano-banana",         "key": KIE_KEY},
-            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_4o",      "model": "gpt-image/1.5-text-to-image","key": KIE_KEY},
-            {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
         ]
 
-        # ОБЫЧНЫЕ KIE МОДЕЛИ — Nano Banana первый (самый быстрый и стабильный)
+        # ОБЫЧНЫЕ KIE МОДЕЛИ — Ideogram TURBO первый, затем Grok, Imagen4 Fast
         KIE_STANDARD_FRONT = [
-            {"name": "Kie.ai (Nano Banana)",     "provider": "kie_jobs",     "model": "google/nano-banana",         "key": KIE_KEY},
-            {"name": "Kie.ai (Nano Banana Pro)", "provider": "kie_jobs",     "model": "nano-banana-pro",            "key": KIE_KEY},
-            {"name": "Kie.ai (GPT Image 1.5)",   "provider": "kie_4o",      "model": "gpt-image/1.5-text-to-image","key": KIE_KEY},
-            {"name": "Kie.ai (Flux Kontext Pro)", "provider": "kie_flux",    "model": "flux-kontext-pro",           "key": KIE_KEY},
+            {"name": "Kie.ai (Ideogram v3 TURBO)", "provider": "kie_jobs", "model": "ideogram/v3-text-to-image", "key": KIE_KEY,
+             "input_extra": {"rendering_speed": "TURBO", "style": "AUTO", "image_size": "square_hd", "num_images": "1"}},
+            {"name": "Kie.ai (Grok Imagine)",    "provider": "kie_jobs",     "model": "grok-imagine/text-to-image", "key": KIE_KEY},
+            {"name": "Kie.ai (Imagen 4 Fast)",   "provider": "kie_jobs",     "model": "google/imagen4-fast",        "key": KIE_KEY},
         ]
 
         # ЛОГИКА ОЧЕРЕДНОСТИ - Всегда KIE.ai первый, остальные как запасные
@@ -969,7 +969,9 @@ def run_final():
                             payload = {"model": model_cfg['model'], "prompt": t}
                         else:  # kie_jobs
                             url = "https://api.kie.ai/api/v1/jobs/createTask"
-                            payload = {"model": model_cfg['model'], "input": {"prompt": t, "aspect_ratio": "1:1"}}
+                            job_input = {"prompt": t, "aspect_ratio": "1:1"}
+                            job_input.update(model_cfg.get('input_extra', {}))
+                            payload = {"model": model_cfg['model'], "input": job_input}
 
                         r = requests.post(url, json=payload, headers=kie_headers, timeout=60)
                         if r.status_code == 200:
