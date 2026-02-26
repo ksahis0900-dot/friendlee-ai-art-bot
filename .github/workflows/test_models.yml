@@ -6,13 +6,15 @@ on:
       mode:
         description: 'Which model to test'
         required: true
-        default: 'all'
+        default: 'imagen4fast'
         type: choice
         options:
-          - all
-          - grok
           - ideogram
+          - grok
+          - imagen4fast
+          - flux2pro
           - zimage
+          - all
 
 jobs:
   test:

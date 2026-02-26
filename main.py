@@ -939,10 +939,10 @@ def run_final():
         # ЛОГИКА ОЧЕРЕДНОСТИ - Всегда KIE.ai первый, остальные как запасные
         is_rus_theme = chosen_category == "Russian Spirit & Traditions"
         if holiday_theme or is_rus_theme:
-            print("🌟 ПРИОРИТЕТ: Праздник/Традиции. Используем Kie Nano Banana первым.")
+            print("🌟 ПРИОРИТЕТ: Праздник/Традиции. Используем Flux 2 Pro первым.")
             IMAGE_MODELS = KIE_NANO_FRONT + FLUX_MODELS
         else:
-            print("🎨 ОБЫЧНЫЙ РЕЖИМ: Используем Kie.ai (GPT 1.5/Flux) первым. Остальные в запасе.")
+            print("🎨 ОБЫЧНЫЙ РЕЖИМ: Ideogram TURBO -> Grok -> Imagen4 Fast.")
             IMAGE_MODELS = KIE_STANDARD_FRONT + FLUX_MODELS
 
         print(f"🎨 Начинаем генерацию. Доступно провайдеров: {len(IMAGE_MODELS)}")
